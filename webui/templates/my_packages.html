@@ -3,11 +3,11 @@
 {% block breadcrumb %}{% include "partials/breadcrumb.html" ignore missing %}{% endblock %}
 {% block content %}
 <div class="flex items-center justify-between mb-4">
-  <h1 class="text-2xl font-bold">📦 Paket Saya</h1>
+  <h1 class="text-2xl font-bold"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1"><line x1="16.5" y1="9.4" x2="7.5" y2="4.21"></line><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"></path><polyline points="3.27 6.96 12 12.01 20.73 6.96"></polyline><line x1="12" y1="22.08" x2="12" y2="12"></line></svg> Paket Saya</h1>
   <a href="/packages/my" class="text-xs text-slate-400 hover:text-slate-200">↻ Refresh</a>
 </div>
 
-{% if request.query_params.get('msg') == 'ok' %}<div class="alert-success">✅ Berhasil unsubscribe</div>{% endif %}
+{% if request.query_params.get('msg') == 'ok' %}<div class="alert-success"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Berhasil unsubscribe</div>{% endif %}
 {% if request.query_params.get('msg') == 'fail' %}<div class="alert-error">⚠️ Gagal unsubscribe</div>{% endif %}
 
 {% if not quotas %}

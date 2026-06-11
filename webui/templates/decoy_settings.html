@@ -3,11 +3,11 @@
 {% block content %}
 
 <div class="flex items-center justify-between mb-4">
-  <h1 class="text-2xl font-bold">⚙️ Pengaturan Decoy</h1>
+  <h1 class="text-2xl font-bold"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg> Pengaturan Decoy</h1>
   <a href="/settings/decoy" class="text-xs text-slate-400 hover:text-slate-200">↻ Refresh</a>
 </div>
 
-{% if msg %}<div class="alert-success">✅ {{ msg }}</div>{% endif %}
+{% if msg %}<div class="alert-success"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> {{ msg }}</div>{% endif %}
 
 <div class="card mb-6 bg-indigo-500/10 border-indigo-500/30">
   <div class="text-sm text-indigo-200 leading-relaxed">
@@ -79,7 +79,7 @@
 {% set tab_id = 'tab-' ~ kind ~ '-' ~ key %}
 <div class="mt-4">
   <div class="flex items-center gap-1 border-b border-slate-800 mb-3" role="tablist">
-    <button type="button" data-tab="form" data-target="{{ tab_id }}" class="tab-btn px-3 py-1.5 text-xs rounded-t border-b-2 border-indigo-500 text-indigo-300 -mb-px">📝 Form</button>
+    <button type="button" data-tab="form" data-target="{{ tab_id }}" class="tab-btn px-3 py-1.5 text-xs rounded-t border-b-2 border-indigo-500 text-indigo-300 -mb-px"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg> Form</button>
     <button type="button" data-tab="json" data-target="{{ tab_id }}" class="tab-btn px-3 py-1.5 text-xs rounded-t border-b-2 border-transparent text-slate-400 hover:text-slate-200 -mb-px">{}  JSON</button>
     <div class="ml-auto">
       <button type="button" data-test="{{ kind }}/{{ key }}" data-test-target="test-{{ kind }}-{{ key }}" class="text-xs px-3 py-1.5 rounded bg-amber-500/15 text-amber-300 border border-amber-500/30 hover:bg-amber-500/25" data-no-loader>🧪 Test Fetch</button>
@@ -176,7 +176,7 @@
         data-confirm-title="Hapus custom decoy?"
         data-confirm-variant="danger"
         data-confirm-ok="Hapus">
-    <button class="btn btn-danger w-full text-xs" type="submit">🗑️ Hapus Custom</button>
+    <button class="btn btn-danger w-full text-xs" type="submit"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg> Hapus Custom</button>
   </form>
 </details>
 {% endfor %}
@@ -236,7 +236,7 @@
         if (d.ok) {
           target.innerHTML = `
             <div class="bg-emerald-500/10 border border-emerald-500/30 rounded p-2 text-emerald-200">
-              <div class="font-bold">✅ Fetch berhasil</div>
+              <div class="font-bold"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Fetch berhasil</div>
               <div class="mt-1 text-xs text-emerald-100/80 space-y-0.5">
                 <div>option: <span class="font-mono">${escape(d.option_code)}</span></div>
                 <div>name: ${escape(d.option_name || '-')}</div>
