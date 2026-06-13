@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}{{ title }} · me-cli{% endblock %}
+{% block title %}{{ title }} · Webui-XL{% endblock %}
 {% block content %}
 <div class="flex items-center justify-between mb-4">
   <h1 class="text-xl font-bold">{{ title }}</h1>
@@ -8,6 +8,6 @@
   </form>
 </div>
 <div class="card">
-  <pre class="text-xs overflow-x-auto bg-slate-950 p-2 rounded">{{ res | tojson(indent=2) }}</pre>
+  <pre class="text-xs overflow-x-auto bg-[#0f172a] rounded-xl p-2">{{ res | tojson(indent=2) }}</pre>
 </div>
 {% endblock %}

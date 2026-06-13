@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Paket Saya · me-cli{% endblock %}
+{% block title %}Paket Saya · Webui-XL{% endblock %}
 {% block breadcrumb %}{% include "partials/breadcrumb.html" ignore missing %}{% endblock %}
 {% block content %}
 <div class="flex items-center justify-between mb-4">
@@ -14,7 +14,7 @@
 <div class="card text-slate-400">
   Tidak ada paket aktif terdeteksi.
   <details class="mt-2"><summary class="text-xs cursor-pointer text-slate-500">Raw response</summary>
-    <pre class="text-xs overflow-x-auto bg-slate-950 p-2 rounded mt-1">{{ raw | tojson(indent=2) }}</pre>
+    <pre class="text-xs overflow-x-auto rounded-xl p-2 mt-1">{{ raw | tojson(indent=2) }}</pre>
   </details>
 </div>
 {% endif %}
@@ -53,7 +53,9 @@
           <span>{{ b.name }}</span>
           {% if b.is_unlimited %}<span class="text-xs bg-emerald-600/30 text-emerald-300 px-2 py-0.5 rounded">∞ Unlimited</span>{% endif %}
         </div>
+        {% if not b.is_unlimited %}
         <div class="text-xs text-slate-400 font-mono">{{ b.rem_disp }}{% if b.unit %} {{ b.unit }}{% endif %} / {{ b.tot_disp }}{% if b.unit %} {{ b.unit }}{% endif %}</div>
+        {% endif %}
       </div>
       {% if not b.is_unlimited and b.pct is defined %}
       <div class="h-2 bg-slate-800 rounded-full overflow-hidden">

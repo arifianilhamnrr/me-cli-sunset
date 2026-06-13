@@ -1,25 +1,25 @@
 {% extends "base.html" %}
-{% block title %}Login · me-cli{% endblock %}
+{% block title %}Login · Webui-XL{% endblock %}
 {% block content %}
 <div class="max-w-lg mx-auto">
 
   <!-- Welcome banner -->
   <div class="text-center mb-6">
     <div class="text-4xl mb-2 text-indigo-400"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></div>
-    <h1 class="text-2xl font-bold bg-gradient-to-r from-indigo-300 to-fuchsia-300 bg-clip-text text-transparent">Selamat datang di me-cli</h1>
+    <h1 class="text-2xl font-bold bg-gradient-to-r from-indigo-300 to-fuchsia-300 bg-clip-text text-transparent">Selamat datang di Webui-XL</h1>
     <p class="text-sm text-slate-400 mt-1">WebUI untuk akun MyXL — login pakai nomor lo sendiri</p>
   </div>
 
   <!-- Tabs -->
   {% set active_tab = (tab or 'login') %}
-  <div class="flex gap-1 bg-slate-900 border border-slate-800 rounded-lg p-1 mb-4">
+  <div class="neu-tabs flex gap-1 mb-4">
     {% for t in [
       ('login', 'fa-solid fa-key', 'Login'),
       ('register', 'fa-solid fa-id-card', 'Register Kartu'),
       ('saved', 'fa-solid fa-user-check', 'Akun Tersimpan')
     ] %}
     <a href="?tab={{ t[0] }}{% if phone and t[0]=='login' %}&phone={{ phone }}{% endif %}"
-       class="flex-1 text-center px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-center gap-1.5 {% if active_tab == t[0] %}bg-indigo-600/30 text-indigo-200 border border-indigo-500/40{% else %}text-slate-400 hover:text-white hover:bg-slate-800{% endif %}"
+       class="flex-1 text-center px-3 py-2 rounded-[14px] text-sm transition-all flex items-center justify-center gap-1.5 {% if active_tab == t[0] %}neu-tab-active{% else %}text-slate-400{% endif %}"
        data-no-loader>
        <i class="{{ t[1] }} text-xs text-indigo-400"></i>
        <span>{{ t[2] }}</span>
@@ -124,7 +124,7 @@
     {% else %}
     <div class="space-y-2">
       {% for u in saved_accounts %}
-      <div class="flex items-center justify-between gap-3 p-3 border border-slate-800 rounded-lg {% if current_active and u.number == current_active.number %}bg-emerald-500/10 border-emerald-500/40{% endif %}">
+      <div class="flex items-center justify-between gap-3 p-3 rounded-[14px] {% if current_active and u.number == current_active.number %}neu-box-sm text-emerald-200{% endif %}">
         <div class="min-w-0">
           <div class="font-mono font-medium">{{ u.number }}</div>
           <div class="text-xs text-slate-500">{{ u.subscription_type or 'unknown' }}</div>

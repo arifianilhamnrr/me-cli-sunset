@@ -1,16 +1,16 @@
 {% extends "base.html" %}
-{% block title %}Monitoring · me-cli{% endblock %}
+{% block title %}Monitoring · Webui-XL{% endblock %}
 {% block content %}
 
 {% set msg = request.query_params.get('msg', '') %}
 {% if msg == 'refreshed' %}
-<div class="mb-4 px-4 py-3 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-sm">Data kuota berhasil di-refresh.</div>
+<div class="alert-success"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Data kuota berhasil di-refresh.</div>
 {% elif msg == 'rule_added' %}
-<div class="mb-4 px-4 py-3 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-sm">Rule berhasil ditambahkan.</div>
+<div class="alert-success"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Rule berhasil ditambahkan.</div>
 {% elif msg == 'rule_deleted' %}
-<div class="mb-4 px-4 py-3 rounded-lg bg-amber-500/15 border border-amber-500/30 text-amber-300 text-sm">Rule dihapus.</div>
+<div class="alert-warning"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Rule dihapus.</div>
 {% elif msg == 'ran' %}
-<div class="mb-4 px-4 py-3 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-300 text-sm">Monitor run-once selesai. Cek log di bawah.</div>
+<div class="alert-success"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Monitor run-once selesai. Cek log di bawah.</div>
 {% endif %}
 
 <!-- Header -->
@@ -28,7 +28,7 @@
 </div>
 
 <!-- Telegram Status -->
-<div class="mb-6 p-4 rounded-xl bg-slate-900 border border-slate-800">
+<div class="card mb-6">
   <div class="flex items-center gap-3">
     <div class="text-2xl"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1"><rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path><line x1="8" y1="16" x2="8" y2="16"></line><line x1="16" y1="16" x2="16" y2="16"></line></svg></div>
     <div>
@@ -51,7 +51,7 @@
   {% if cache %}
   <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     {% for msisdn, data in cache.items() %}
-    <div class="p-4 rounded-xl bg-slate-900 border border-slate-800">
+    <div class="card">
       <div class="flex items-center justify-between mb-3">
         <div class="font-mono text-sm font-bold text-white">{{ msisdn }}</div>
         {% if data.updated_at %}
@@ -60,7 +60,7 @@
       </div>
 
       {% if data.balance %}
-      <div class="mb-3 p-2 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
+      <div class="mb-3 rounded-[14px] p-2 neu-box-sm">
         <div class="text-xs text-indigo-300">Pulsa</div>
         <div class="font-bold text-white">
           {% if data.balance.remaining is not none %}{{ data.balance.remaining | rp }}{% else %}—{% endif %}
@@ -74,7 +74,7 @@
       {% if data.quotas %}
       <div class="space-y-2">
         {% for q in data.quotas[:6] %}
-        <div class="p-2 rounded-lg bg-slate-800/60">
+        <div class="rounded-[14px] p-2">
           <div class="text-xs font-medium text-slate-200 mb-1">{{ q.name or '-' }}</div>
           {% for b in (q.benefits or [])[:3] %}
           {% set rem = b.remaining or 0 %}
@@ -102,7 +102,7 @@
     {% endfor %}
   </div>
   {% else %}
-  <div class="p-6 text-center text-slate-500 bg-slate-900 border border-slate-800 rounded-xl">
+  <div class="card text-center text-slate-500">
     Belum ada data. Klik <b>Refresh Data</b> untuk mengambil kuota terbaru.
   </div>
   {% endif %}
@@ -117,7 +117,7 @@
   {% if rules %}
   <div class="space-y-2 mb-4">
     {% for r in rules %}
-    <div class="p-3 rounded-xl bg-slate-900 border border-slate-800 {% if not r.enabled %}opacity-50{% endif %}">
+    <div class="card {% if not r.enabled %}opacity-50{% endif %}">
       <div class="flex items-center justify-between">
         <div>
           <span class="font-medium text-sm text-white">{{ r.name or 'Untitled' }}</span>
@@ -152,23 +152,23 @@
     {% endfor %}
   </div>
   {% else %}
-  <div class="p-4 text-center text-slate-500 bg-slate-900 border border-slate-800 rounded-xl mb-4">
+  <div class="card text-center text-slate-500">
     Belum ada rule. Tambah rule di bawah.
   </div>
   {% endif %}
 
   <!-- Add Rule Form -->
-  <details class="bg-slate-900 border border-slate-800 rounded-xl">
+  <details class="card">
     <summary class="cursor-pointer px-4 py-3 text-sm font-medium text-indigo-300 hover:text-indigo-200">+ Tambah Rule Baru</summary>
-    <form action="/monitoring/rules" method="post" class="p-4 border-t border-slate-800 space-y-4">
+    <form action="/monitoring/rules" method="post" class="p-4 space-y-4">
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="text-xs text-slate-400">Nama Rule</label>
-          <input name="name" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-sm text-white" placeholder="Kuota rendah alert">
+          <input name="name" class="form-input" placeholder="Kuota rendah alert">
         </div>
         <div>
           <label class="text-xs text-slate-400">MSISDN</label>
-          <select name="msisdn" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-sm text-white">
+          <select name="msisdn" class="form-input">
             {% for acc in myxl_accounts %}
             <option value="{{ acc.number }}">{{ acc.number }} · {{ acc.subscription_type or '?' }}</option>
             {% endfor %}
@@ -179,7 +179,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
           <label class="text-xs text-slate-400">Match Kind</label>
-          <select name="match_kind" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-sm text-white">
+          <select name="match_kind" class="form-input">
             <option value="any">Any Quota</option>
             <option value="quota_name">Quota Name (contains)</option>
             <option value="quota_code">Quota Code (exact)</option>
@@ -188,11 +188,11 @@
         </div>
         <div>
           <label class="text-xs text-slate-400">Match Value</label>
-          <input name="match_value" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-sm text-white" placeholder="(kosongkan untuk any)">
+          <input name="match_value" class="form-input" placeholder="(kosongkan untuk any)">
         </div>
         <div>
           <label class="text-xs text-slate-400">Data Type</label>
-          <select name="match_data_type" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-sm text-white">
+          <select name="match_data_type" class="form-input">
             <option value="ANY">Any</option>
             <option value="DATA">Data</option>
             <option value="VOICE">Voice</option>
@@ -204,7 +204,7 @@
       <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
           <label class="text-xs text-slate-400">Trigger Metric</label>
-          <select name="trigger_metric" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-sm text-white">
+          <select name="trigger_metric" class="form-input">
             <option value="remaining_pct">Remaining %</option>
             <option value="remaining_bytes">Remaining Bytes</option>
             <option value="remaining_minutes">Remaining Minutes</option>
@@ -213,7 +213,7 @@
         </div>
         <div>
           <label class="text-xs text-slate-400">Operator</label>
-          <select name="trigger_op" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-sm text-white">
+          <select name="trigger_op" class="form-input">
             <option value="lt">&lt; (less than)</option>
             <option value="lte">&lt;= (less or equal)</option>
             <option value="gt">&gt; (greater than)</option>
@@ -223,14 +223,14 @@
         </div>
         <div>
           <label class="text-xs text-slate-400">Value</label>
-          <input name="trigger_value" type="number" value="10" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-sm text-white">
+          <input name="trigger_value" type="number" value="10" class="form-input">
         </div>
       </div>
 
       <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label class="text-xs text-slate-400">Action Type</label>
-          <select name="action_type" id="action_type" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-sm text-white" onchange="toggleActionFields()">
+          <select name="action_type" id="action_type" class="form-input" onchange="toggleActionFields()">
             <option value="telegram">Kirim Telegram</option>
             <option value="buy_option">Beli Paket (Auto-buy)</option>
             <option value="unsubscribe">Unsubscribe</option>
@@ -239,13 +239,13 @@
         </div>
         <div>
           <label class="text-xs text-slate-400">Cooldown (detik)</label>
-          <input name="cooldown_seconds" type="number" value="3600" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-sm text-white">
+          <input name="cooldown_seconds" type="number" value="3600" class="form-input">
         </div>
       </div>
 
       <div id="tg_fields">
         <label class="text-xs text-slate-400">Pesan Telegram</label>
-        <textarea name="action_message" rows="2" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-sm text-white" placeholder="Kuota {quota} tinggal {pct}% ({remaining}/{total})"></textarea>
+        <textarea name="action_message" rows="2" class="form-input" placeholder="Kuota {quota} tinggal {pct}% ({remaining}/{total})"></textarea>
         <div class="text-xs text-slate-500 mt-1">Placeholder: {quota}, {benefit}, {pct}, {remaining}, {total}, {msisdn}</div>
       </div>
 
@@ -253,11 +253,11 @@
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <label class="text-xs text-slate-400">Option Code</label>
-            <input name="action_option_code" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-sm text-white" placeholder="U0Nf...">
+            <input name="action_option_code" class="form-input" placeholder="U0Nf...">
           </div>
           <div>
             <label class="text-xs text-slate-400">Payment Method</label>
-            <select name="action_method" class="w-full mt-1 bg-slate-800 border border-slate-700 rounded px-3 py-2 text-sm text-white">
+            <select name="action_method" class="form-input">
               <option value="balance">Balance (Pulsa)</option>
               <option value="qris">QRIS</option>
             </select>
@@ -272,9 +272,9 @@
 
 <!-- Log -->
 <section>
-  <details class="bg-slate-900 border border-slate-800 rounded-xl">
+  <details class="card">
     <summary class="cursor-pointer px-4 py-3 text-sm font-medium text-slate-300 hover:text-white">Monitor Log ({{ log_lines|length }} baris terakhir)</summary>
-    <div class="p-4 border-t border-slate-800 max-h-96 overflow-y-auto">
+    <div class="p-4 max-h-96 overflow-y-auto">
       {% if log_lines %}
       <pre class="text-xs text-slate-400 font-mono whitespace-pre-wrap">{% for l in log_lines %}{{ l }}
 {% endfor %}</pre>

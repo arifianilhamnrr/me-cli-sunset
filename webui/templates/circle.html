@@ -1,31 +1,31 @@
 {% extends "base.html" %}
-{% block title %}Circle · me-cli{% endblock %}
+{% block title %}Circle · Webui-XL{% endblock %}
 {% block content %}
 <h1 class="text-xl font-bold mb-4"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1"><circle cx="12" cy="12" r="10"></circle></svg> Circle</h1>
 
 <div class="card mb-3">
   <h2 class="font-bold mb-2">Group</h2>
-  <pre class="text-xs overflow-x-auto bg-slate-950 p-2 rounded">{{ group | tojson(indent=2) }}</pre>
+  <pre class="text-xs overflow-x-auto rounded-xl p-2">{{ group | tojson(indent=2) }}</pre>
 </div>
 
 {% if members %}
 <div class="card mb-3">
   <h2 class="font-bold mb-2">Members</h2>
-  <pre class="text-xs overflow-x-auto bg-slate-950 p-2 rounded">{{ members | tojson(indent=2) }}</pre>
+  <pre class="text-xs overflow-x-auto rounded-xl p-2">{{ members | tojson(indent=2) }}</pre>
 </div>
 {% endif %}
 
 {% if spend %}
 <div class="card mb-3">
   <h2 class="font-bold mb-2">Spending Tracker</h2>
-  <pre class="text-xs overflow-x-auto bg-slate-950 p-2 rounded">{{ spend | tojson(indent=2) }}</pre>
+  <pre class="text-xs overflow-x-auto rounded-xl p-2">{{ spend | tojson(indent=2) }}</pre>
 </div>
 {% endif %}
 
 {% if bonus %}
 <div class="card mb-3">
   <h2 class="font-bold mb-2">Bonus</h2>
-  <pre class="text-xs overflow-x-auto bg-slate-950 p-2 rounded">{{ bonus | tojson(indent=2) }}</pre>
+  <pre class="text-xs overflow-x-auto rounded-xl p-2">{{ bonus | tojson(indent=2) }}</pre>
 </div>
 {% endif %}
 

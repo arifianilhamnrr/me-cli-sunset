@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}PUK · me-cli{% endblock %}
+{% block title %}PUK · Webui-XL{% endblock %}
 {% block content %}
 <div class="max-w-md mx-auto">
   <div class="card">
@@ -12,7 +12,7 @@
   </div>
   {% if res %}
   <div class="card mt-3">
-    <pre class="text-xs overflow-x-auto bg-slate-950 p-2 rounded">{{ res | tojson(indent=2) }}</pre>
+    <pre class="text-xs overflow-x-auto bg-[#0f172a] rounded-xl p-2">{{ res | tojson(indent=2) }}</pre>
   </div>
   {% endif %}
 </div>

@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Loop berjalan · me-cli{% endblock %}
+{% block title %}Loop berjalan · Webui-XL{% endblock %}
 {% block content %}
 <h1 class="text-2xl font-bold mb-2"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg> Loop Beli Family</h1>
 <div class="text-xs text-slate-400 mb-4">
@@ -25,15 +25,15 @@
 
   <!-- Counters -->
   <div class="grid grid-cols-3 gap-2 mt-4">
-    <div class="bg-emerald-500/10 border border-emerald-500/30 rounded p-2 text-center">
+    <div class="bg-emerald-500/10 rounded-xl p-2 text-center">
       <div class="text-xl font-bold text-emerald-300" id="cnt-ok">0</div>
       <div class="text-xs text-emerald-200/70"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg> Sukses</div>
     </div>
-    <div class="bg-amber-500/10 border border-amber-500/30 rounded p-2 text-center">
+    <div class="bg-amber-500/10 rounded-xl p-2 text-center">
       <div class="text-xl font-bold text-amber-300" id="cnt-fail">0</div>
       <div class="text-xs text-amber-200/70"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg> Ditolak</div>
     </div>
-    <div class="bg-red-500/10 border border-red-500/30 rounded p-2 text-center">
+    <div class="bg-red-500/10 rounded-xl p-2 text-center">
       <div class="text-xl font-bold text-red-300" id="cnt-err">0</div>
       <div class="text-xs text-red-200/70"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1 text-red-400"><circle cx="12" cy="12" r="10"></circle><line x1="15" y1="9" x2="9" y2="15"></line><line x1="9" y1="9" x2="15" y2="15"></line></svg> Error</div>
     </div>
@@ -42,7 +42,7 @@
   <!-- Current item -->
   <div id="current-box" class="mt-4 hidden">
     <div class="text-xs text-slate-500 uppercase tracking-wider mb-1">Sedang Diproses</div>
-    <div class="bg-slate-900 border border-slate-700 rounded p-3">
+    <div class="rounded-[14px] p-3">
       <div id="cur-title" class="font-medium text-sm"></div>
       <div id="cur-step" class="text-xs text-slate-400 mt-1"></div>
     </div>
@@ -59,7 +59,7 @@
 <!-- Detailed log -->
 <details open class="card">
   <summary class="cursor-pointer text-sm font-medium text-slate-300"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg> Detail Log</summary>
-  <div id="log" class="mt-3 font-mono text-xs space-y-0.5 bg-slate-950 p-3 rounded max-h-96 overflow-y-auto"></div>
+  <div id="log" class="mt-3 font-mono text-xs space-y-0.5 rounded-xl p-3 max-h-96 overflow-y-auto"></div>
 </details>
 
 <script>

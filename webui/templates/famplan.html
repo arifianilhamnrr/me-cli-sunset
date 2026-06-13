@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-{% block title %}Akrab · me-cli{% endblock %}
+{% block title %}Akrab · Webui-XL{% endblock %}
 {% block content %}
 <div class="flex items-center justify-between mb-4">
   <h1 class="text-2xl font-bold"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block mr-1"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg> Akrab / Family Plan</h1>
@@ -11,13 +11,13 @@
   <div class="font-medium">Lo bukan organizer Akrab.</div>
   <div class="text-xs text-slate-400 mt-1">Cek raw response di bawah kalau lo merasa harusnya ada.</div>
   <details class="mt-3"><summary class="text-xs cursor-pointer text-slate-500">Raw response</summary>
-    <pre class="text-xs overflow-x-auto bg-slate-950 p-2 rounded mt-1">{{ data | tojson(indent=2) }}</pre>
+    <pre class="text-xs overflow-x-auto rounded-xl p-2 mt-1">{{ data | tojson(indent=2) }}</pre>
   </details>
 </div>
 {% else %}
 
 <!-- Plan summary -->
-<div class="relative overflow-hidden rounded-2xl mb-6 p-6 bg-gradient-to-br from-emerald-600 via-teal-600 to-cyan-600 shadow-2xl shadow-emerald-900/30">
+<div class="neu-box-lg p-6 mb-6">
   <div class="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
   <div class="relative z-10">
     <div class="flex items-start justify-between gap-3">
@@ -49,7 +49,7 @@
 
 {# Slot card macro, reused for both regular & additional slots #}
 {% macro render_slot(m) %}
-<div class="card {% if m.is_empty %}border-dashed text-slate-400{% elif m.is_parent %}border-amber-500/40{% elif m.is_additional %}border-fuchsia-500/40{% endif %}">
+<div class="card {% if m.is_empty %}border-dashed text-slate-400{% elif m.is_parent %}{% elif m.is_additional %}{% endif %}">
   <div class="flex items-start justify-between gap-3">
     <div class="min-w-0">
       <div class="text-xs text-slate-500">
@@ -84,7 +84,7 @@
   </div>
   {% endif %}
 
-  <div class="mt-3 pt-3 border-t border-slate-800/60">
+  <div class="mt-3 pt-3">
     {% if m.is_empty %}
     <details>
       <summary class="cursor-pointer text-sm text-emerald-300 hover:text-emerald-200">+ Tambah member</summary>
@@ -154,7 +154,7 @@
 
 <details class="card">
   <summary class="cursor-pointer text-sm text-slate-400">Raw response (debug)</summary>
-  <pre class="text-xs overflow-x-auto bg-slate-950 p-2 rounded mt-2">{{ data | tojson(indent=2) }}</pre>
+  <pre class="text-xs overflow-x-auto rounded-xl p-2 mt-2">{{ data | tojson(indent=2) }}</pre>
 </details>
 
 {% endif %}

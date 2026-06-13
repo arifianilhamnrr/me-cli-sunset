@@ -1,39 +1,38 @@
 {% extends "base.html" %}
-{% block title %}Beranda · me-cli{% endblock %}
+{% block title %}Beranda · Webui-XL{% endblock %}
 {% block content %}
 <!-- Hero balance card -->
-<div class="relative overflow-hidden rounded-2xl mb-6 p-6 bg-gradient-to-br from-indigo-600 via-purple-600 to-fuchsia-600 shadow-2xl shadow-indigo-900/30">
-  <div class="absolute -top-20 -right-20 w-64 h-64 bg-white/10 rounded-full blur-3xl"></div>
-  <div class="absolute -bottom-20 -left-10 w-64 h-64 bg-fuchsia-400/20 rounded-full blur-3xl"></div>
+<div class="neu-box-lg mb-6 p-6 relative overflow-hidden">
   <div class="relative z-10">
     <div class="flex items-start justify-between">
       <div>
-        <div class="text-xs text-indigo-100 uppercase tracking-wider">Nomor Aktif</div>
-        <div class="text-2xl sm:text-3xl font-bold text-white font-mono">{{ active_user.number }}</div>
-        <div class="text-xs text-indigo-100 mt-1">
-          <span class="bg-white/15 px-2 py-0.5 rounded">{{ active_user.subscription_type }}</span>
-          {% if tier_info and tier_info.tier %}<span class="ml-1 bg-white/15 px-2 py-0.5 rounded"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="text-amber-300 inline-block align-middle"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Tier {{ tier_info.tier }}</span>{% endif %}
+        <div class="text-xs text-slate-400 uppercase tracking-wider">Nomor Aktif</div>
+        <div class="text-2xl sm:text-3xl font-bold text-slate-100 font-mono cursor-pointer" onclick="toggleMsisdn()">
+          <span id="msisdn-text">••••••••••</span>
+          <input type="hidden" id="msisdn-full" value="{{ active_user.number }}">
+        </div>
+        <div class="text-xs text-slate-400 mt-1">
+          <span class="neu-badge">{{ active_user.subscription_type }}</span>
+          {% if tier_info and tier_info.tier %}<span class="neu-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor" class="text-amber-300 inline-block align-middle"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg> Tier {{ tier_info.tier }}</span>{% endif %}
         </div>
       </div>
-      <a href="/accounts" class="text-xs text-indigo-100 hover:text-white">Ganti akun ↗</a>
+      <a href="/accounts" class="text-xs text-slate-400 hover:text-slate-200">Ganti akun ↗</a>
     </div>
 
     <div class="grid grid-cols-3 gap-3 sm:gap-4 mt-6">
-      <div>
-        <div class="text-xs text-indigo-100">Pulsa</div>
-        <div class="font-bold text-base sm:text-lg text-white truncate">{% if balance and balance.remaining is not none %}{{ balance.remaining | rp }}{% else %}—{% endif %}</div>
+      {% for stat in [
+        ('Pulsa', balance.remaining | rp if balance and balance.remaining is not none else '—'),
+        ('Aktif s/d', balance.expired_at | date if balance and balance.expired_at else '—'),
+        ('Points', (tier_info.current_point or 0) | string)
+      ] %}
+      <div class="text-center p-3 rounded-[14px] neu-inset-card">
+        <div class="text-[0.6rem] uppercase tracking-widest text-slate-500">{{ stat[0] }}</div>
+        <div class="font-bold text-sm sm:text-base text-slate-200 mt-0.5 truncate">{{ stat[1] }}</div>
       </div>
-      <div>
-        <div class="text-xs text-indigo-100">Aktif s/d</div>
-        <div class="font-bold text-base sm:text-lg text-white">{% if balance and balance.expired_at %}{{ balance.expired_at | date }}{% else %}—{% endif %}</div>
-      </div>
-      <div>
-        <div class="text-xs text-indigo-100">Points</div>
-        <div class="font-bold text-base sm:text-lg text-white">{{ tier_info.current_point or 0 }}</div>
-      </div>
+      {% endfor %}
     </div>
 
-    {% if balance_err %}<div class="mt-3 text-xs bg-red-500/30 border border-red-400/40 text-red-100 px-3 py-2 rounded">{{ balance_err }}</div>{% endif %}
+    {% if balance_err %}<div class="mt-3 text-xs neu-box-sm text-red-400 p-2">{{ balance_err }}</div>{% endif %}
   </div>
 </div>
 

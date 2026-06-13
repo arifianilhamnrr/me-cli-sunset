@@ -1,31 +1,31 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="{% if user_theme == 'light' %}theme-light{% endif %}">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{% if mode == 'register' %}Register WebUI · me-cli{% else %}Login WebUI · me-cli{% endif %}</title>
+  <title>{% if mode == 'register' %}Register Webui-XL{% else %}Login Webui-XL{% endif %}</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="/static/css/custom.css">
   <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%234f46e5' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cstyle%3E@media (prefers-color-scheme: dark) %7B polygon %7B stroke: %23818cf8; %7D %7D%3C/style%3E%3Cpolygon points='13 2 3 14 12 14 11 22 21 10 12 10 13 2'%3E%3C/polygon%3E%3C/svg%3E">
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex items-center justify-center p-4">
+<body class="bg-[#0f172a] text-slate-100 min-h-screen flex items-center justify-center p-4">
 <div class="max-w-md w-full">
 
   <div class="text-center mb-6">
     <div class="text-5xl mb-3 text-indigo-400"><svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="inline-block"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg></div>
-    <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-fuchsia-300 bg-clip-text text-transparent">me-cli</h1>
+    <h1 class="text-3xl font-bold bg-gradient-to-r from-indigo-300 via-purple-300 to-fuchsia-300 bg-clip-text text-transparent">Webui-XL</h1>
     <p class="text-xs text-slate-500 mt-1">WebUI multi-user untuk MyXL</p>
   </div>
 
   <!-- Tabs -->
-  <div class="flex gap-1 bg-slate-900 border border-slate-800 rounded-lg p-1 mb-4">
+  <div class="neu-tabs flex gap-1 mb-4">
     <a href="/u/login{% if username %}?username={{ username }}{% endif %}"
-       class="flex-1 text-center px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-center gap-1.5 {% if mode == 'login' %}bg-indigo-600/30 text-indigo-200 border border-indigo-500/40{% else %}text-slate-400 hover:text-white hover:bg-slate-800{% endif %}">
+       class="flex-1 text-center px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-center gap-1.5 {% if mode == 'login' %}neu-tab-active{% else %}text-slate-400 hover:text-white hover:bg-slate-800{% endif %}">
       <i class="fa-solid fa-key text-indigo-400"></i>
       <span>Login</span>
     </a>
     <a href="/u/register"
-       class="flex-1 text-center px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-center gap-1.5 {% if mode == 'register' %}bg-emerald-600/30 text-emerald-200 border border-emerald-500/40{% else %}text-slate-400 hover:text-white hover:bg-slate-800{% endif %}">
+       class="flex-1 text-center px-3 py-2 rounded-md text-sm transition-colors flex items-center justify-center gap-1.5 {% if mode == 'register' %}neu-tab-active{% else %}text-slate-400 hover:text-white hover:bg-slate-800{% endif %}">
       <i class="fa-solid fa-user-plus text-emerald-400"></i>
       <span>Daftar baru</span>
     </a>

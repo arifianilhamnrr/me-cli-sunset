@@ -55,8 +55,17 @@ class Bookmark:
 
     def load_bookmark(self):
         """Load bookmarks from JSON file and ensure schema consistency."""
-        with open(resolve_path(self.filepath), "r", encoding="utf-8") as f:
-            self.packages = json.load(f)
+        path = resolve_path(self.filepath)
+        import os
+        if not os.path.exists(path):
+            self.packages = []
+            return
+            
+        with open(path, "r", encoding="utf-8") as f:
+            try:
+                self.packages = json.load(f)
+            except json.JSONDecodeError:
+                self.packages = []
         self._ensure_schema()
 
     def save_bookmark(self):
