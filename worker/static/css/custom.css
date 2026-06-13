@@ -757,19 +757,13 @@ pre {
   box-shadow: inset 3px 3px 6px #d1d5db, inset -3px -3px 6px #ffffff !important;
   background: transparent !important;
 }
-.theme-light .neu-alert-error,
-.theme-light .alert-error,
 .theme-light .neu-alert-success,
 .theme-light .alert-success {
-  background: #ffffff !important;
-  box-shadow: 6px 6px 12px #d1d5db, -6px -6px 12px #ffffff !important;
-}
-.theme-light .neu-alert-success,
-.theme-light .alert-success {
-  color: #047857 !important;
-  background: #ecfdf5 !important;
-  border-left-color: #10b981 !important;
-  box-shadow: 6px 6px 12px #d1d5db, -6px -6px 12px #ffffff, inset 0 0 0 1px rgba(16, 185, 129, 0.2) !important;
+  color: #065f46 !important;
+  background: #d1fae5 !important;
+  border-left: 3px solid #059669 !important;
+  font-weight: 600;
+  box-shadow: 6px 6px 12px #d1d5db, -6px -6px 12px #ffffff, inset 0 0 0 1px rgba(5, 150, 105, 0.25) !important;
 }
 .theme-light .neu-alert-error,
 .theme-light .alert-error {
