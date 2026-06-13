@@ -79,21 +79,13 @@ def _format_ts_short(ts) -> str:
 
 
 def _format_date_dmY(ts) -> str:
-    if not ts:
-        return "-"
-    try:
-        return datetime.fromtimestamp(int(ts)).strftime("%d-%m-%Y")
-    except (TypeError, ValueError, OSError):
-        return "-"
+    from webui.helpers import format_date
+    return format_date(ts)
 
 
 def _format_date_iso(ts) -> str:
-    if not ts:
-        return "-"
-    try:
-        return datetime.fromtimestamp(int(ts)).strftime("%Y-%m-%d")
-    except (TypeError, ValueError, OSError):
-        return "-"
+    from webui.helpers import format_date
+    return format_date(ts)
 
 
 def _card_age_from_dob(dob_str: str) -> str:

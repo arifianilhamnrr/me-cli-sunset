@@ -23,8 +23,8 @@ def format_ts(ts) -> str:
         return str(ts)
 
 _ID_MONTHS_LONG = [
-    "januari", "februari", "maret", "april", "mei", "juni",
-    "juli", "agustus", "september", "oktober", "november", "desember",
+    "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+    "Juli", "Agustus", "September", "Oktober", "November", "Desember",
 ]
 
 def format_date(ts) -> str:

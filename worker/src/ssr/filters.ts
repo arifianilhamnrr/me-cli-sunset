@@ -3,18 +3,18 @@
 const WIB_MONTHS = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
 
 const ID_MONTHS_LONG = [
-  "januari",
-  "februari",
-  "maret",
-  "april",
-  "mei",
-  "juni",
-  "juli",
-  "agustus",
-  "september",
-  "oktober",
-  "november",
-  "desember",
+  "Januari",
+  "Februari",
+  "Maret",
+  "April",
+  "Mei",
+  "Juni",
+  "Juli",
+  "Agustus",
+  "September",
+  "Oktober",
+  "November",
+  "Desember",
 ];
 
 export function formatRp(value: unknown): string {

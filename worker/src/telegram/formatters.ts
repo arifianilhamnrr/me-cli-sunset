@@ -1,5 +1,5 @@
 import { formatQuotaByte } from "../myxl/quota";
-import { formatRp } from "../ssr/filters";
+import { formatDate, formatRp } from "../ssr/filters";
 
 export function esc(text: unknown): string {
   return String(text ?? "")
@@ -16,25 +16,11 @@ export function tgErr(exc: unknown): string {
 }
 
 export function formatDateDmY(ts: unknown): string {
-  if (!ts) return "-";
-  try {
-    const d = new Date(Number.parseInt(String(ts), 10) * 1000);
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${pad(d.getDate())}-${pad(d.getMonth() + 1)}-${d.getFullYear()}`;
-  } catch {
-    return "-";
-  }
+  return formatDate(ts);
 }
 
 export function formatDateIso(ts: unknown): string {
-  if (!ts) return "-";
-  try {
-    const d = new Date(Number.parseInt(String(ts), 10) * 1000);
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
-  } catch {
-    return "-";
-  }
+  return formatDate(ts);
 }
 
 export function cardAgeFromDob(dobStr: string): string {

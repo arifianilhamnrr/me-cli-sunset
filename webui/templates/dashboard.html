@@ -25,7 +25,7 @@
         ('Aktif s/d', balance.expired_at | date if balance and balance.expired_at else '—'),
         ('Points', (tier_info.current_point or 0) | string)
       ] %}
-      <div class="flex items-center justify-between gap-4 p-3 rounded-[14px] neu-inset-card">
+      <div class="flex items-center justify-between gap-4 py-1">
         <div class="text-[0.6rem] uppercase tracking-widest text-slate-500 shrink-0">{{ stat[0] }}</div>
         <div class="font-bold text-sm sm:text-base text-slate-200 text-right">{{ stat[1] }}</div>
       </div>

@@ -13,7 +13,7 @@ describe("SSR filters", () => {
 
   it("formatDate", () => {
     const out = formatDate(1710000000);
-    expect(out).toMatch(/\d+ \w+ \d{4}/);
+    expect(out).toMatch(/\d+ [A-Z]\w+ \d{4}/);
     expect(out).not.toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
