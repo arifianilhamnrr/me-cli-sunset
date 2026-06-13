@@ -12,6 +12,8 @@ import notificationDetailTemplate from "./templates/notification_detail.html";
 import notificationsTemplate from "./templates/notifications.html";
 import themeSettingsTemplate from "./templates/theme_settings.html";
 import transactionsTemplate from "./templates/transactions.html";
+import monitoringTemplate from "./templates/monitoring.html";
+import monitoringTelegramTemplate from "./templates/monitoring_telegram.html";
 import errorBodyTemplate from "./templates/error_body.html";
 import familyDetailTemplate from "./templates/family_detail.html";
 import familyLoopTemplate from "./templates/family_loop.html";
@@ -66,4 +68,6 @@ export const TEMPLATES: Record<string, string> = {
   notifications: notificationsTemplate,
   notification_detail: notificationDetailTemplate,
   transactions: transactionsTemplate,
+  monitoring: monitoringTemplate,
+  monitoring_telegram: monitoringTelegramTemplate,
 };

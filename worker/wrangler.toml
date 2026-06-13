@@ -48,5 +48,8 @@ ENVIRONMENT = "development"
 # tag = "v1"
 # new_classes = ["FamilyLoopDO"]
 
+[triggers]
+crons = ["*/5 * * * *"]
+
 [dev]
 port = 8787

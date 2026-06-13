@@ -5,6 +5,7 @@ import { MemoryStorageBackend } from "../storage/memory-backend";
 import { USER_ACTIVE_NUMBER, USER_REFRESH_TOKENS } from "../storage/keys";
 import {
   addRefreshToken,
+  getAccountForMsisdn,
   getActiveUserDisplay,
   listAccounts,
   loadRefreshTokens,
@@ -53,6 +54,24 @@ describe("myxl accounts", () => {
     await storage.putBlob("alice", USER_ACTIVE_NUMBER, "628111");
     const active = await getActiveUserDisplay(storage, "alice");
     expect(active?.number).toBe(628111);
+  });
+
+  it("getAccountForMsisdn returns user without changing active", async () => {
+    const storage = new MemoryStorageBackend();
+    const clients = mockClients();
+    await storage.putBlob(
+      "alice",
+      USER_REFRESH_TOKENS,
+      JSON.stringify([
+        { number: 628111, subscriber_id: "s1", subscription_type: "PREPAID", refresh_token: "r1" },
+        { number: 628222, subscriber_id: "s2", subscription_type: "PREPAID", refresh_token: "r2" },
+      ]),
+    );
+    await storage.putBlob("alice", USER_ACTIVE_NUMBER, "628111");
+
+    const user = await getAccountForMsisdn(storage, "alice", 628222, clients);
+    expect(user?.number).toBe(628222);
+    expect(await storage.getBlob("alice", USER_ACTIVE_NUMBER)).toBe("628111");
   });
 
   it("setActiveUser switches active number", async () => {

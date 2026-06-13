@@ -15,8 +15,11 @@ import { registration } from "./routes/registration";
 import { store } from "./routes/store";
 import { theme } from "./routes/theme";
 import { transaction } from "./routes/transaction";
+import { monitoring } from "./routes/monitoring";
 import { telegramWebhook } from "./telegram/webhook";
+import { runMonitorCron } from "./monitor/cron";
 import { processPurchaseJob } from "./queue/purchase-consumer";
+import { resolveStorage } from "./storage/resolve";
 import type { PurchaseQueueMessage } from "./queue/purchase-jobs";
 import { webuiAuth } from "./routes/webui-auth";
 import { htmlResponse, renderErrorPage } from "./ssr";
@@ -52,6 +55,7 @@ app.route("/", theme);
 app.route("/", donasi);
 app.route("/", notification);
 app.route("/", transaction);
+app.route("/", monitoring);
 app.route("/", telegramWebhook);
 
 app.get("/demo/error", (c) => {
@@ -72,6 +76,10 @@ app.notFound((c) => {
 
 export default {
   fetch: app.fetch,
+  async scheduled(_controller: ScheduledController, env: import("./env").Env): Promise<void> {
+    const storage = resolveStorage(env);
+    await runMonitorCron(env, storage);
+  },
   async queue(batch: MessageBatch<PurchaseQueueMessage>, env: import("./env").Env): Promise<void> {
     for (const msg of batch.messages) {
       await processPurchaseJob(env, msg.body);

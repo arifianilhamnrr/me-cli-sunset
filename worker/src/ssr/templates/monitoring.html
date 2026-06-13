@@ -1,0 +1,269 @@
+{{#msg_refreshed}}<div class="alert-success">Data kuota berhasil di-refresh.</div>{{/msg_refreshed}}
+{{#msg_rule_added}}<div class="alert-success">Rule berhasil ditambahkan.</div>{{/msg_rule_added}}
+{{#msg_rule_deleted}}<div class="alert-warning">Rule dihapus.</div>{{/msg_rule_deleted}}
+{{#msg_ran}}<div class="alert-success">Monitor run-once selesai. Cek log di bawah.</div>{{/msg_ran}}
+
+<div class="flex items-center justify-between mb-6">
+  <h1 class="text-xl font-bold text-white">Monitoring</h1>
+  <div class="flex gap-2">
+    <form action="/monitoring/refresh" method="post">
+      <button type="submit" class="btn btn-secondary text-xs px-3 py-1.5">Refresh Data</button>
+    </form>
+    <form action="/monitoring/run-once" method="post">
+      <button type="submit" class="btn btn-primary text-xs px-3 py-1.5">Run Once</button>
+    </form>
+    <a href="/monitoring/telegram" class="btn btn-secondary text-xs px-3 py-1.5">Telegram Settings</a>
+  </div>
+</div>
+
+<div class="card mb-6">
+  <div class="flex items-center gap-3">
+    <div class="text-2xl">🤖</div>
+    <div>
+      <div class="text-sm font-semibold text-white">Telegram Bot</div>
+      {{#tg_global_enabled}}
+      <span class="text-xs text-emerald-400">Aktif</span>
+      {{/tg_global_enabled}}
+      {{^tg_global_enabled}}
+      <span class="text-xs text-slate-500">Nonaktif — <a href="/monitoring/telegram" class="text-indigo-400 hover:underline">Setup</a></span>
+      {{/tg_global_enabled}}
+      {{#has_tg_chat_id}}
+      <span class="text-xs text-slate-400 ml-2">· Chat ID: <code>{{tg_user_chat_id}}</code></span>
+      {{/has_tg_chat_id}}
+    </div>
+  </div>
+</div>
+
+<section class="mb-6">
+  <h2 class="text-sm uppercase tracking-wider text-slate-400 mb-3">Status Akun</h2>
+  {{#has_cache}}
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+    {{#cache_cards}}
+    <div class="card">
+      <div class="flex items-center justify-between mb-3">
+        <div class="font-mono text-sm font-bold text-white">{{msisdn}}</div>
+        {{#updated_at_disp}}<div class="text-xs text-slate-500">{{updated_at_disp}}</div>{{/updated_at_disp}}
+      </div>
+      {{#has_balance}}
+      <div class="mb-3 rounded-[14px] p-2 neu-box-sm">
+        <div class="text-xs text-indigo-300">Pulsa</div>
+        <div class="font-bold text-white">{{balance_rp}}</div>
+        {{#balance_exp}}<div class="text-xs text-slate-400">Aktif s/d {{balance_exp}}</div>{{/balance_exp}}
+      </div>
+      {{/has_balance}}
+      {{#has_quotas}}
+      <div class="space-y-2">
+        {{#quotas}}
+        <div class="rounded-[14px] p-2">
+          <div class="text-xs font-medium text-slate-200 mb-1">{{name}}</div>
+          {{#benefits}}
+          <div class="flex items-center gap-2 mb-1">
+            <div class="flex-1">
+              <div class="h-1.5 rounded-full bg-slate-700 overflow-hidden">
+                <div class="h-full rounded-full {{bar_class}}" style="width:{{pct_width}}%"></div>
+              </div>
+            </div>
+            <div class="text-xs text-slate-400 w-24 text-right">{{display}}</div>
+          </div>
+          {{/benefits}}
+        </div>
+        {{/quotas}}
+      </div>
+      {{/has_quotas}}
+      {{^has_quotas}}
+      <div class="text-xs text-slate-500">(belum ada data kuota)</div>
+      {{/has_quotas}}
+    </div>
+    {{/cache_cards}}
+  </div>
+  {{/has_cache}}
+  {{^has_cache}}
+  <div class="card text-center text-slate-500">
+    Belum ada data. Klik <b>Refresh Data</b> untuk mengambil kuota terbaru.
+  </div>
+  {{/has_cache}}
+</section>
+
+<section class="mb-6">
+  <div class="flex items-center justify-between mb-3">
+    <h2 class="text-sm uppercase tracking-wider text-slate-400">Monitoring Rules</h2>
+  </div>
+
+  {{#has_rules}}
+  <div class="space-y-2 mb-4">
+    {{#rules}}
+    <div class="card {{#disabled}}opacity-50{{/disabled}}">
+      <div class="flex items-center justify-between">
+        <div>
+          <span class="font-medium text-sm text-white">{{name}}</span>
+          <span class="text-xs text-slate-500 ml-2">{{msisdn}}</span>
+          {{#last_status}}
+          <span class="text-xs ml-2 {{#status_ok}}text-emerald-400{{/status_ok}}{{#status_error}}text-red-400{{/status_error}}{{#status_partial}}text-amber-400{{/status_partial}}">
+            {{last_status}}
+          </span>
+          {{/last_status}}
+        </div>
+        <div class="flex gap-1">
+          <form action="/monitoring/rules/{{id}}/toggle" method="post" data-no-loader>
+            <button type="submit" class="text-xs px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">
+              {{#enabled}}ON{{/enabled}}{{^enabled}}OFF{{/enabled}}
+            </button>
+          </form>
+          <form action="/monitoring/rules/{{id}}/delete" method="post" data-confirm="Hapus rule '{{name}}'?" data-confirm-variant="danger">
+            <button type="submit" class="text-xs px-2 py-1 rounded bg-red-900/30 hover:bg-red-900/50 text-red-400">Del</button>
+          </form>
+        </div>
+      </div>
+      <div class="text-xs text-slate-500 mt-1">
+        {{match_kind}}{{#has_match_value}}: {{match_value}}{{/has_match_value}}
+        · {{trigger_metric}} {{trigger_op}} {{trigger_value}}
+        · cooldown {{cooldown_seconds}}s
+        {{#has_last_fired}}· last fired {{last_fired_disp}}{{/has_last_fired}}
+      </div>
+      {{#has_last_msg}}
+      <div class="text-xs text-slate-400 mt-1 truncate">{{last_msg}}</div>
+      {{/has_last_msg}}
+    </div>
+    {{/rules}}
+  </div>
+  {{/has_rules}}
+  {{^has_rules}}
+  <div class="card text-center text-slate-500">Belum ada rule. Tambah rule di bawah.</div>
+  {{/has_rules}}
+
+  <details class="card">
+    <summary class="cursor-pointer px-4 py-3 text-sm font-medium text-indigo-300 hover:text-indigo-200">+ Tambah Rule Baru</summary>
+    <form action="/monitoring/rules" method="post" class="p-4 space-y-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs text-slate-400">Nama Rule</label>
+          <input name="name" class="form-input" placeholder="Kuota rendah alert">
+        </div>
+        <div>
+          <label class="text-xs text-slate-400">MSISDN</label>
+          <select name="msisdn" class="form-input">
+            {{#myxl_accounts}}
+            <option value="{{number}}">{{number}} · {{subscription_type}}</option>
+            {{/myxl_accounts}}
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label class="text-xs text-slate-400">Match Kind</label>
+          <select name="match_kind" class="form-input">
+            <option value="any">Any Quota</option>
+            <option value="quota_name">Quota Name (contains)</option>
+            <option value="quota_code">Quota Code (exact)</option>
+            <option value="group_name">Group Name (contains)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-slate-400">Match Value</label>
+          <input name="match_value" class="form-input" placeholder="(kosongkan untuk any)">
+        </div>
+        <div>
+          <label class="text-xs text-slate-400">Data Type</label>
+          <select name="match_data_type" class="form-input">
+            <option value="ANY">Any</option>
+            <option value="DATA">Data</option>
+            <option value="VOICE">Voice</option>
+            <option value="TEXT">Text/SMS</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+          <label class="text-xs text-slate-400">Trigger Metric</label>
+          <select name="trigger_metric" class="form-input">
+            <option value="remaining_pct">Remaining %</option>
+            <option value="remaining_bytes">Remaining Bytes</option>
+            <option value="remaining_minutes">Remaining Minutes</option>
+            <option value="expiring_in_days">Expiring in Days</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-slate-400">Operator</label>
+          <select name="trigger_op" class="form-input">
+            <option value="lt">&lt; (less than)</option>
+            <option value="lte">&lt;= (less or equal)</option>
+            <option value="gt">&gt; (greater than)</option>
+            <option value="gte">&gt;= (greater or equal)</option>
+            <option value="eq">= (equal)</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-slate-400">Value</label>
+          <input name="trigger_value" type="number" value="10" class="form-input">
+        </div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+          <label class="text-xs text-slate-400">Action Type</label>
+          <select name="action_type" id="action_type" class="form-input" onchange="toggleActionFields()">
+            <option value="telegram">Kirim Telegram</option>
+            <option value="buy_option">Beli Paket (Auto-buy)</option>
+            <option value="unsubscribe">Unsubscribe</option>
+            <option value="telegram_and_buy">Telegram + Auto-buy</option>
+          </select>
+        </div>
+        <div>
+          <label class="text-xs text-slate-400">Cooldown (detik)</label>
+          <input name="cooldown_seconds" type="number" value="3600" class="form-input">
+        </div>
+      </div>
+
+      <div id="tg_fields">
+        <label class="text-xs text-slate-400">Pesan Telegram</label>
+        <textarea name="action_message" rows="2" class="form-input" placeholder="Kuota {quota} tinggal {pct}% ({remaining}/{total})"></textarea>
+        <div class="text-xs text-slate-500 mt-1">Placeholder: {quota}, {benefit}, {pct}, {remaining}, {total}, {msisdn}</div>
+      </div>
+
+      <div id="buy_fields" class="hidden">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <label class="text-xs text-slate-400">Option Code</label>
+            <input name="action_option_code" class="form-input" placeholder="U0Nf...">
+          </div>
+          <div>
+            <label class="text-xs text-slate-400">Payment Method</label>
+            <select name="action_method" class="form-input">
+              <option value="balance">Balance (Pulsa)</option>
+              <option value="qris">QRIS</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary text-sm px-4 py-2">Simpan Rule</button>
+    </form>
+  </details>
+</section>
+
+<section>
+  <details class="card">
+    <summary class="cursor-pointer px-4 py-3 text-sm font-medium text-slate-300 hover:text-white">Monitor Log ({{log_count}} baris terakhir)</summary>
+    <div class="p-4 max-h-96 overflow-y-auto">
+      {{#has_log}}
+      <pre class="text-xs text-slate-400 font-mono whitespace-pre-wrap">{{#log_lines}}{{line}}
+{{/log_lines}}</pre>
+      {{/has_log}}
+      {{^has_log}}
+      <div class="text-sm text-slate-500">Log kosong.</div>
+      {{/has_log}}
+    </div>
+  </details>
+</section>
+
+<script>
+function toggleActionFields() {
+  const t = document.getElementById('action_type').value;
+  const tgF = document.getElementById('tg_fields');
+  const buyF = document.getElementById('buy_fields');
+  tgF.classList.toggle('hidden', t === 'buy_option' || t === 'unsubscribe');
+  buyF.classList.toggle('hidden', t === 'telegram' || t === 'unsubscribe');
+}
+</script>

@@ -48,3 +48,26 @@ export async function loadTelegramConfig(env: Env, storage: StorageBackend): Pro
     poll_interval_minutes: Number(blob.poll_interval_minutes ?? DEFAULTS.poll_interval_minutes),
   };
 }
+
+export async function saveTelegramConfig(
+  env: Env,
+  storage: StorageBackend,
+  patch: Partial<TelegramConfig>,
+): Promise<void> {
+  const current = await loadTelegramConfig(env, storage);
+  const next = { ...current, ...patch };
+  await storage.putBlob(
+    null,
+    GLOBAL_TELEGRAM_CONFIG,
+    JSON.stringify({
+      bot_token: next.bot_token,
+      enabled: next.enabled,
+      webhook_secret: next.webhook_secret,
+      daily_summary_enabled: next.daily_summary_enabled,
+      daily_summary_hour: next.daily_summary_hour,
+      daily_summary_minute: next.daily_summary_minute,
+      low_quota_threshold_pct: next.low_quota_threshold_pct,
+      poll_interval_minutes: next.poll_interval_minutes,
+    }),
+  );
+}

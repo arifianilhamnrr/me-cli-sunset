@@ -3,11 +3,13 @@
 export const GLOBAL_TELEGRAM_CONFIG = "telegram.json";
 export const GLOBAL_SESSION_SECRET = "session.secret";
 export const GLOBAL_USERS_REGISTRY = "users.json";
+export const GLOBAL_MONITOR_DAILY_SUMMARY = "monitor-daily-summary.json";
 
 export const GLOBAL_DATA_KEYS = new Set([
   GLOBAL_TELEGRAM_CONFIG,
   GLOBAL_SESSION_SECRET,
   GLOBAL_USERS_REGISTRY,
+  GLOBAL_MONITOR_DAILY_SUMMARY,
 ]);
 
 export const USER_REFRESH_TOKENS = "refresh-tokens.json";

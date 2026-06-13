@@ -289,3 +289,20 @@ export async function getActiveUserSafe(
     return null;
   }
 }
+
+/** Load tokens for a specific MSISDN without changing the active account. */
+export async function getAccountForMsisdn(
+  storage: StorageBackend,
+  username: string,
+  msisdn: number,
+  clients: MyXlClients,
+): Promise<ActiveUser | null> {
+  const entries = await loadRefreshTokens(storage, username);
+  const entry = entries.find((rt) => rt.number === msisdn);
+  if (!entry) return null;
+  try {
+    return await buildActiveUser(storage, username, msisdn, entry, clients);
+  } catch {
+    return null;
+  }
+}
