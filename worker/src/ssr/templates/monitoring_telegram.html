@@ -26,8 +26,8 @@
     <div>
       <label class="label">Bot Token (dari @BotFather)</label>
       <div class="relative mt-1">
-        <input name="bot_token" id="bot_token" type="password" value="{{tg_global.bot_token}}"
-               class="form-input pr-14 text-sm sm:text-base" placeholder="123456:ABC-DEF..." autocomplete="off">
+        <input name="bot_token" id="bot_token" type="password" value=""
+               class="form-input pr-14 text-sm sm:text-base" placeholder="{{#has_bot_token}}Token tersimpan — isi ulang hanya jika ganti{{/has_bot_token}}{{^has_bot_token}}123456:ABC-DEF...{{/has_bot_token}}" autocomplete="off">
         <button type="button" onclick="toggleToken()" class="absolute right-1 top-1/2 -translate-y-1/2 text-xs text-slate-400 hover:text-white px-2 py-2 min-w-[2.75rem]">Show</button>
       </div>
       <div class="text-xs text-slate-500 mt-1 leading-relaxed">Buat bot via <a href="https://t.me/BotFather" target="_blank" rel="noopener" class="text-indigo-400 hover:underline">@BotFather</a> di Telegram.</div>
