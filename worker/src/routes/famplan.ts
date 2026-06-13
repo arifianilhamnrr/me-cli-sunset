@@ -1,7 +1,6 @@
 import { Hono } from "hono";
-import { htmlResponse, renderErrorPage } from "../ssr";
 import { formatApiResult, formatFamplanPage } from "../myxl/famplan";
-import { renderActivePage, requireActiveSession } from "../myxl/require";
+import { renderActivePage, requireActiveSession , renderAppErrorPage} from "../myxl/require";
 import type { AppEnv } from "../types";
 
 export const famplan = new Hono<AppEnv>();
@@ -17,8 +16,7 @@ famplan.get("/family-plan", async (c) => {
       ...formatFamplanPage(data),
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Gagal fetch", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Gagal fetch", message: String(e) }, 500);
   }
 });
 
@@ -42,8 +40,7 @@ famplan.post("/family-plan/change-member", async (c) => {
       ...formatApiResult(res),
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Ganti member gagal", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Ganti member gagal", message: String(e) }, 500);
   }
 });
 
@@ -63,8 +60,7 @@ famplan.post("/family-plan/remove-member", async (c) => {
       ...formatApiResult(res),
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Hapus member gagal", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Hapus member gagal", message: String(e) }, 500);
   }
 });
 
@@ -88,8 +84,7 @@ famplan.post("/family-plan/set-quota", async (c) => {
       ...formatApiResult(res),
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Set quota gagal", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Set quota gagal", message: String(e) }, 500);
   }
 });
 
@@ -118,7 +113,6 @@ famplan.post("/validate-msisdn", async (c) => {
       ...formatApiResult(res),
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Gagal validate", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Gagal validate", message: String(e) }, 500);
   }
 });

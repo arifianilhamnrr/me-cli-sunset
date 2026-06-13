@@ -1,7 +1,7 @@
 import type { Context } from "hono";
 import type { WebuiUserRecord } from "../auth/users";
 import { getTheme } from "../auth/users";
-import { htmlResponse, renderErrorPage } from "../ssr";
+import { htmlResponse, layoutExtrasForUser, renderErrorPage } from "../ssr";
 import type { AppEnv } from "../types";
 import { getActiveUserSafe, listAccounts, type ActiveUser } from "./accounts";
 import { createMyXlClients } from "./clients";
@@ -12,6 +12,19 @@ export interface ActiveSession {
   webuiUser: WebuiUserRecord;
   activeUser: ActiveUser;
   clients: MyXlClients;
+}
+
+export function renderAppErrorPage(
+  c: Context<AppEnv>,
+  ctx: { title?: string; message: string },
+  status = 500,
+): Response {
+  const webuiUser = c.get("webuiUser");
+  const html = renderErrorPage(c.req.raw, {
+    ...ctx,
+    ...layoutExtrasForUser(webuiUser),
+  });
+  return htmlResponse(html, status);
 }
 
 export function requireWebuiUser(c: Context<AppEnv>): WebuiUserRecord | Response {
@@ -45,20 +58,22 @@ export async function requireActiveSession(c: Context<AppEnv>): Promise<ActiveSe
   try {
     clients = createMyXlClients(c.env, storage, webuiUser.username);
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, {
+    return renderAppErrorPage(c, {
       title: "Konfigurasi",
       message: `MyXL API belum dikonfigurasi: ${e}`,
     });
-    return htmlResponse(html, 500);
   }
 
   const activeUser = await getActiveUserSafe(storage, webuiUser.username, clients);
   if (!activeUser) {
-    const html = renderErrorPage(c.req.raw, {
-      title: "Login dulu",
-      message: "Belum ada akun aktif.",
-    });
-    return htmlResponse(html, 401);
+    return renderAppErrorPage(
+      c,
+      {
+        title: "Login dulu",
+        message: "Belum ada akun aktif.",
+      },
+      401,
+    );
   }
 
   return { webuiUser, activeUser, clients };

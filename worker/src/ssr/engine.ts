@@ -1,4 +1,5 @@
 import Mustache from "mustache";
+import { getTheme, type WebuiUserRecord } from "../auth/users";
 import { applyFilter } from "./filters";
 import { buildBottomNav, buildNavSections } from "./nav";
 import { TEMPLATES } from "./templates";
@@ -93,7 +94,23 @@ export function renderWebuiLogin(_request: Request, ctx: WebuiLoginContext): str
   });
 }
 
-export function renderErrorPage(request: Request, ctx: { title?: string; message: string }): string {
+export interface ErrorPageContext {
+  title?: string;
+  message: string;
+  user_theme?: string;
+  webui_user?: { username: string };
+}
+
+export function layoutExtrasForUser(
+  webuiUser?: WebuiUserRecord | null,
+): Pick<ErrorPageContext, "user_theme" | "webui_user"> {
+  return {
+    user_theme: getTheme(webuiUser),
+    webui_user: webuiUser ? { username: webuiUser.username } : undefined,
+  };
+}
+
+export function renderErrorPage(request: Request, ctx: ErrorPageContext): string {
   const title = ctx.title ?? "Error";
   const message_pre = ctx.message.includes("\n") || ctx.message.includes("Traceback");
   return renderLayout("error_body", request, {
@@ -101,5 +118,7 @@ export function renderErrorPage(request: Request, ctx: { title?: string; message
     message: ctx.message,
     message_pre,
     page_title: title,
+    user_theme: ctx.user_theme,
+    webui_user: ctx.webui_user,
   });
 }

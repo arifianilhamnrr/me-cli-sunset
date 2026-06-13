@@ -12,8 +12,7 @@ import {
   saveDecoyJson,
   testDecoyFetch,
 } from "../myxl/decoy-settings";
-import { renderWebuiPage, requireActiveSession, requireWebuiUser } from "../myxl/require";
-import { htmlResponse, renderErrorPage } from "../ssr";
+import { renderAppErrorPage, renderWebuiPage, requireActiveSession, requireWebuiUser } from "../myxl/require";
 import type { AppEnv } from "../types";
 
 export const decoySettings = new Hono<AppEnv>();
@@ -47,8 +46,7 @@ decoySettings.post("/settings/decoy/builtin/:key", async (c) => {
 
   const key = c.req.param("key");
   if (!BUILTIN_KEYS.has(key)) {
-    const html = renderErrorPage(c.req.raw, { title: "Slot tidak dikenal", message: `Builtin slot '${key}' invalid` });
-    return htmlResponse(html, 400);
+    return renderAppErrorPage(c, { title: "Slot tidak dikenal", message: `Builtin slot '${key}' invalid` }, 400);
   }
 
   const body = await c.req.parseBody();
@@ -64,20 +62,12 @@ decoySettings.post("/settings/decoy/custom/add", async (c) => {
   const body = await c.req.parseBody();
   const name = String(body.name ?? "").trim().toLowerCase();
   if (!DECOY_NAME_RE.test(name)) {
-    const html = renderErrorPage(c.req.raw, {
-      title: "Nama invalid",
-      message: "Nama hanya boleh: huruf kecil, angka, _, - (max 31 char). Contoh: v1, vtest, my-decoy",
-    });
-    return htmlResponse(html, 400);
+    return renderAppErrorPage(c, { title: "Nama invalid", message: "Nama hanya boleh: huruf kecil, angka, _, - (max 31 char). Contoh: v1, vtest, my-decoy" }, 400);
   }
 
   const storage = c.get("storage");
   if (await storage.blobExists(webuiUser.username, customStorageKey(name))) {
-    const html = renderErrorPage(c.req.raw, {
-      title: "Nama duplikat",
-      message: `Custom decoy bernama '${name}' sudah ada. Pilih nama lain atau edit yang ada.`,
-    });
-    return htmlResponse(html, 400);
+    return renderAppErrorPage(c, { title: "Nama duplikat", message: `Custom decoy bernama '${name}' sudah ada. Pilih nama lain atau edit yang ada.` }, 400);
   }
 
   const data = parseDecoyForm(body as Record<string, unknown>, true);
@@ -91,18 +81,13 @@ decoySettings.post("/settings/decoy/custom/:name", async (c) => {
 
   const name = c.req.param("name");
   if (!DECOY_NAME_RE.test(name)) {
-    const html = renderErrorPage(c.req.raw, { title: "Nama invalid", message: name });
-    return htmlResponse(html, 400);
+    return renderAppErrorPage(c, { title: "Nama invalid", message: name }, 400);
   }
 
   const storage = c.get("storage");
   const objectKey = customStorageKey(name);
   if (!(await storage.blobExists(webuiUser.username, objectKey))) {
-    const html = renderErrorPage(c.req.raw, {
-      title: "Tidak ditemukan",
-      message: `custom-${name}.json belum ada`,
-    });
-    return htmlResponse(html, 404);
+    return renderAppErrorPage(c, { title: "Tidak ditemukan", message: `custom-${name}.json belum ada` }, 404);
   }
 
   const body = await c.req.parseBody();
@@ -117,8 +102,7 @@ decoySettings.post("/settings/decoy/custom/:name/delete", async (c) => {
 
   const name = c.req.param("name");
   if (!DECOY_NAME_RE.test(name)) {
-    const html = renderErrorPage(c.req.raw, { title: "Nama invalid", message: name });
-    return htmlResponse(html, 400);
+    return renderAppErrorPage(c, { title: "Nama invalid", message: name }, 400);
   }
 
   await c.get("storage").deleteBlob(webuiUser.username, customStorageKey(name));
@@ -134,8 +118,7 @@ decoySettings.post("/settings/decoy/raw/:kind/:key", async (c) => {
   const body = await c.req.parseBody();
   const raw = String(body.raw_json ?? "");
   if (!raw.trim()) {
-    const html = renderErrorPage(c.req.raw, { title: "JSON kosong", message: "Masukin JSON yang valid" });
-    return htmlResponse(html, 400);
+    return renderAppErrorPage(c, { title: "JSON kosong", message: "Masukin JSON yang valid" }, 400);
   }
 
   let data: Record<string, unknown>;
@@ -145,15 +128,13 @@ decoySettings.post("/settings/decoy/raw/:kind/:key", async (c) => {
       throw new Error("Root harus berupa object (dict)");
     }
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "JSON invalid", message: String(e) });
-    return htmlResponse(html, 400);
+    return renderAppErrorPage(c, { title: "JSON invalid", message: String(e) }, 400);
   }
 
   const storage = c.get("storage");
   if (kind === "builtin") {
     if (!BUILTIN_KEYS.has(key)) {
-      const html = renderErrorPage(c.req.raw, { title: "Slot tidak dikenal", message: key });
-      return htmlResponse(html, 400);
+      return renderAppErrorPage(c, { title: "Slot tidak dikenal", message: key }, 400);
     }
     await saveDecoyJson(storage, webuiUser.username, builtinStorageKey(key), data);
     return c.redirect(`/settings/decoy?msg=Built-in+%27${key}%27+(JSON)+disimpan`, 303);
@@ -161,16 +142,14 @@ decoySettings.post("/settings/decoy/raw/:kind/:key", async (c) => {
 
   if (kind === "custom") {
     if (!DECOY_NAME_RE.test(key)) {
-      const html = renderErrorPage(c.req.raw, { title: "Nama invalid", message: key });
-      return htmlResponse(html, 400);
+      return renderAppErrorPage(c, { title: "Nama invalid", message: key }, 400);
     }
     if (!("base_method" in data)) data.base_method = "balance";
     await saveDecoyJson(storage, webuiUser.username, customStorageKey(key), data);
     return c.redirect(`/settings/decoy?msg=Custom+%27${key}%27+(JSON)+disimpan`, 303);
   }
 
-  const html = renderErrorPage(c.req.raw, { title: "Kind invalid", message: kind });
-  return htmlResponse(html, 400);
+  return renderAppErrorPage(c, { title: "Kind invalid", message: kind }, 400);
 });
 
 decoySettings.post("/settings/decoy/test/:kind/:key", async (c) => {

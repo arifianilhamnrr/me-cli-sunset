@@ -1,7 +1,6 @@
 import { Hono } from "hono";
-import { renderActivePage, requireActiveSession } from "../myxl/require";
+import { renderActivePage, requireActiveSession , renderAppErrorPage} from "../myxl/require";
 import { formatTransactions } from "../myxl/transactions";
-import { htmlResponse, renderErrorPage } from "../ssr";
 import type { AppEnv } from "../types";
 
 export const transaction = new Hono<AppEnv>();
@@ -21,7 +20,6 @@ transaction.get("/transactions", async (c) => {
       raw_json: JSON.stringify(raw ?? {}, null, 2),
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Gagal fetch", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Gagal fetch", message: String(e) }, 500);
   }
 });

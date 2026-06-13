@@ -29,6 +29,18 @@ describe("SSR engine", () => {
     expect(html).toContain("/static/css/custom.css");
   });
 
+  it("renders error page with session user and light theme", () => {
+    const html = renderErrorPage(new Request("http://localhost/packages/my"), {
+      title: "Gagal fetch",
+      message: "API timeout",
+      user_theme: "light",
+      webui_user: { username: "arifian" },
+    });
+    expect(html).toContain('class="theme-light"');
+    expect(html).toContain("arifian");
+    expect(html).not.toContain('href="/u/login" class="btn btn-primary text-xs">Login</a>');
+  });
+
   it("renders layout with content slot", () => {
     const html = renderLayout("error_body", new Request("http://localhost/"), {
       title: "Oops",

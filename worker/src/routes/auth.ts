@@ -1,3 +1,5 @@
+import { renderAppErrorPage } from "../myxl/require";
+import { htmlResponse } from "../ssr";
 import { Hono } from "hono";
 import { getTheme, type WebuiUserRecord } from "../auth/users";
 import {
@@ -16,7 +18,6 @@ import {
   mapSavedAccounts,
   renderMyXlPage,
 } from "../myxl/render";
-import { htmlResponse, renderErrorPage } from "../ssr";
 import type { AppEnv } from "../types";
 
 function requireWebuiUser(c: { get: (k: "webuiUser") => WebuiUserRecord | null }): WebuiUserRecord {
@@ -201,17 +202,12 @@ myxlAuth.post("/accounts/activate", async (c) => {
   try {
     clients = createMyXlClients(c.env, storage, webuiUser.username);
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Gagal aktifkan akun", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Gagal aktifkan akun", message: String(e) }, 500);
   }
 
   const ok = await setActiveUser(storage, webuiUser.username, number, clients);
   if (!ok) {
-    const html = renderErrorPage(c.req.raw, {
-      title: "Gagal aktifkan akun",
-      message: "Token tidak valid atau sudah tidak aktif. Hapus akun ini dan login ulang dengan OTP.",
-    });
-    return htmlResponse(html, 400);
+    return renderAppErrorPage(c, { title: "Gagal aktifkan akun", message: "Token tidak valid atau sudah tidak aktif. Hapus akun ini dan login ulang dengan OTP." }, 400);
   }
   return c.redirect("/", 303);
 });
@@ -226,15 +222,13 @@ myxlAuth.post("/accounts/remove", async (c) => {
   try {
     clients = createMyXlClients(c.env, storage, webuiUser.username);
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Gagal hapus akun", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Gagal hapus akun", message: String(e) }, 500);
   }
 
   try {
     await removeRefreshToken(storage, webuiUser.username, number, clients);
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Gagal hapus akun", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Gagal hapus akun", message: String(e) }, 500);
   }
   return c.redirect("/accounts", 303);
 });

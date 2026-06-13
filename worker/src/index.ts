@@ -23,7 +23,8 @@ import { processPurchaseJob } from "./queue/purchase-consumer";
 import { resolveStorage } from "./storage/resolve";
 import type { PurchaseQueueMessage } from "./queue/purchase-jobs";
 import { webuiAuth } from "./routes/webui-auth";
-import { htmlResponse, renderErrorPage } from "./ssr";
+import { renderAppErrorPage } from "./myxl/require";
+import { htmlResponse } from "./ssr";
 import type { AppEnv } from "./types";
 
 export { FamilyLoopDO } from "./durable-objects/family-loop";
@@ -37,11 +38,10 @@ app.onError((err, c) => {
   console.error("worker error", c.req.method, c.req.path, err);
   const accept = c.req.header("accept") ?? "";
   if (accept.includes("text/html") || c.req.path.startsWith("/u/")) {
-    const html = renderErrorPage(c.req.raw, {
+    return renderAppErrorPage(c, {
       title: "Error",
       message: "Terjadi kesalahan internal. Coba lagi dalam beberapa detik.",
     });
-    return htmlResponse(html, 500);
   }
   return c.json({ ok: false, error: "Internal Server Error" }, 500);
 });
@@ -73,21 +73,23 @@ app.route("/", transaction);
 app.route("/", monitoring);
 app.route("/", telegramWebhook);
 
-app.get("/demo/error", (c) => {
-  const html = renderErrorPage(c.req.raw, {
+app.get("/demo/error", (c) =>
+  renderAppErrorPage(c, {
     title: "Demo Error",
     message: "Ini halaman error contoh dari SSR engine.",
-  });
-  return htmlResponse(html);
-});
+  }),
+);
 
-app.notFound((c) => {
-  const html = renderErrorPage(c.req.raw, {
-    title: "404",
-    message: `Path tidak ditemukan: ${c.req.path}`,
-  });
-  return htmlResponse(html, 404);
-});
+app.notFound((c) =>
+  renderAppErrorPage(
+    c,
+    {
+      title: "404",
+      message: `Path tidak ditemukan: ${c.req.path}`,
+    },
+    404,
+  ),
+);
 
 export default {
   fetch: app.fetch,

@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 import { addBookmark, getBookmarks, removeBookmark } from "../myxl/bookmark";
-import { renderActivePage, requireActiveSession } from "../myxl/require";
-import { htmlResponse, renderErrorPage } from "../ssr";
+import { renderActivePage, requireActiveSession , renderAppErrorPage} from "../myxl/require";
 import type { AppEnv } from "../types";
 
 function parseBool(value: string): boolean {
@@ -22,8 +21,7 @@ bookmark.get("/bookmark", async (c) => {
       has_bookmarks: bookmarks.length > 0,
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Gagal load bookmark", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Gagal load bookmark", message: String(e) }, 500);
   }
 });
 
@@ -43,8 +41,7 @@ bookmark.post("/bookmark/add", async (c) => {
       package_option_code: String(body.package_option_code ?? ""),
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Tambah bookmark gagal", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Tambah bookmark gagal", message: String(e) }, 500);
   }
   return c.redirect("/bookmark", 303);
 });
@@ -64,8 +61,7 @@ bookmark.post("/bookmark/remove", async (c) => {
       Number.parseInt(String(body.order ?? "0"), 10) || 0,
     );
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Hapus bookmark gagal", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Hapus bookmark gagal", message: String(e) }, 500);
   }
   return c.redirect("/bookmark", 303);
 });

@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 import { parseNotificationDetail, parseNotificationList } from "../myxl/notifications";
-import { renderActivePage, requireActiveSession } from "../myxl/require";
-import { htmlResponse, renderErrorPage } from "../ssr";
+import { renderActivePage, requireActiveSession , renderAppErrorPage} from "../myxl/require";
 import type { AppEnv } from "../types";
 
 export const notification = new Hono<AppEnv>();
@@ -20,8 +19,7 @@ notification.get("/notifications", async (c) => {
       raw_json: JSON.stringify(raw ?? {}, null, 2),
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Gagal fetch", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Gagal fetch", message: String(e) }, 500);
   }
 });
 
@@ -40,7 +38,6 @@ notification.get("/notifications/:nid", async (c) => {
       has_category: !!detail.category,
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Gagal fetch", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Gagal fetch", message: String(e) }, 500);
   }
 });

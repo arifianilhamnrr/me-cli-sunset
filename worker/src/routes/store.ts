@@ -1,13 +1,12 @@
 import { Hono } from "hono";
 import { createStoreClient } from "../clients/store";
-import { htmlResponse, renderErrorPage } from "../ssr";
 import {
   formatRedeemables,
   formatStoreFamilies,
   formatStorePackages,
   formatStoreSegments,
 } from "../myxl/store";
-import { renderActivePage, requireActiveSession } from "../myxl/require";
+import { renderActivePage, requireActiveSession , renderAppErrorPage} from "../myxl/require";
 import type { AppEnv } from "../types";
 
 export const store = new Hono<AppEnv>();
@@ -31,8 +30,7 @@ store.get("/store/segments", async (c) => {
       enterprise,
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Gagal fetch", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Gagal fetch", message: String(e) }, 500);
   }
 });
 
@@ -52,8 +50,7 @@ store.get("/store/families", async (c) => {
       enterprise,
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Gagal fetch", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Gagal fetch", message: String(e) }, 500);
   }
 });
 
@@ -85,8 +82,7 @@ store.get("/store/packages", async (c) => {
       has_query: Boolean(q.trim()),
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Gagal fetch", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Gagal fetch", message: String(e) }, 500);
   }
 });
 
@@ -105,7 +101,6 @@ store.get("/store/redemables", async (c) => {
       enterprise,
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Gagal fetch", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Gagal fetch", message: String(e) }, 500);
   }
 });

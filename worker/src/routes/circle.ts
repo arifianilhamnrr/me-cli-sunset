@@ -1,7 +1,6 @@
 import { Hono } from "hono";
-import { htmlResponse, renderErrorPage } from "../ssr";
 import { formatApiResult } from "../myxl/famplan";
-import { renderActivePage, requireActiveSession } from "../myxl/require";
+import { renderActivePage, requireActiveSession , renderAppErrorPage} from "../myxl/require";
 import type { AppEnv } from "../types";
 
 export const circle = new Hono<AppEnv>();
@@ -59,8 +58,7 @@ circle.get("/circle", async (c) => {
       group_id: groupId ?? "",
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Gagal fetch", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Gagal fetch", message: String(e) }, 500);
   }
 });
 
@@ -84,8 +82,7 @@ circle.post("/circle/invite", async (c) => {
       ...formatApiResult(res),
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Invite gagal", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Invite gagal", message: String(e) }, 500);
   }
 });
 
@@ -109,8 +106,7 @@ circle.post("/circle/remove", async (c) => {
       ...formatApiResult(res),
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Remove gagal", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Remove gagal", message: String(e) }, 500);
   }
 });
 
@@ -132,8 +128,7 @@ circle.post("/circle/accept", async (c) => {
       ...formatApiResult(res),
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Accept gagal", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Accept gagal", message: String(e) }, 500);
   }
 });
 
@@ -157,7 +152,6 @@ circle.post("/circle/create", async (c) => {
       ...formatApiResult(res),
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Create circle gagal", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Create circle gagal", message: String(e) }, 500);
   }
 });

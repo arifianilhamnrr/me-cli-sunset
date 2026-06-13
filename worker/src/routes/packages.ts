@@ -1,8 +1,7 @@
 import { Hono } from "hono";
-import { htmlResponse, renderErrorPage } from "../ssr";
 import { formatFamilyDetail, formatPackageDetail } from "../myxl/packages";
 import { formatMyPackages } from "../myxl/quota";
-import { renderActivePage, requireActiveSession } from "../myxl/require";
+import { renderActivePage, requireActiveSession , renderAppErrorPage} from "../myxl/require";
 import type { AppEnv } from "../types";
 
 export const packages = new Hono<AppEnv>();
@@ -25,19 +24,14 @@ packages.get("/packages/by-option", async (c) => {
   try {
     const pkg = await session.clients.engsel.getPackage(session.activeUser.tokens.id_token, code);
     if (!pkg) {
-      const html = renderErrorPage(c.req.raw, {
-        title: "Tidak ditemukan",
-        message: `Option code ${code} tidak ditemukan.`,
-      });
-      return htmlResponse(html, 404);
+      return renderAppErrorPage(c, { title: "Tidak ditemukan", message: `Option code ${code} tidak ditemukan.` }, 404);
     }
     return renderActivePage(c, session, "package_detail", {
       page_title: `${formatPackageDetail(pkg, code).opt_name} · WebUI-XL`,
       ...formatPackageDetail(pkg, code),
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Gagal fetch", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Gagal fetch", message: String(e) }, 500);
   }
 });
 
@@ -59,11 +53,7 @@ packages.get("/packages/by-family", async (c) => {
   try {
     const family = await session.clients.engsel.getFamily(session.activeUser.tokens.id_token, code);
     if (!family) {
-      const html = renderErrorPage(c.req.raw, {
-        title: "Tidak ditemukan",
-        message: `Family code ${code} tidak ditemukan.`,
-      });
-      return htmlResponse(html, 404);
+      return renderAppErrorPage(c, { title: "Tidak ditemukan", message: `Family code ${code} tidak ditemukan.` }, 404);
     }
     const ctx = formatFamilyDetail(family, code);
     return renderActivePage(c, session, "family_detail", {
@@ -71,8 +61,7 @@ packages.get("/packages/by-family", async (c) => {
       ...ctx,
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Gagal fetch", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Gagal fetch", message: String(e) }, 500);
   }
 });
 
@@ -98,8 +87,7 @@ packages.get("/packages/my", async (c) => {
       raw_json: JSON.stringify(res, null, 2),
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Gagal fetch", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Gagal fetch", message: String(e) }, 500);
   }
 });
 
@@ -121,7 +109,6 @@ packages.post("/packages/my/unsubscribe", async (c) => {
     );
     return c.redirect(`/packages/my?msg=${ok ? "ok" : "fail"}`, 303);
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Unsubscribe gagal", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Unsubscribe gagal", message: String(e) }, 500);
   }
 });

@@ -1,8 +1,7 @@
 import { Hono } from "hono";
-import { htmlResponse, renderErrorPage } from "../ssr";
 import { createMyXlClients } from "../myxl/clients";
 import { formatApiResult } from "../myxl/famplan";
-import { renderWebuiPage, requireWebuiUser } from "../myxl/require";
+import { renderWebuiPage, requireWebuiUser , renderAppErrorPage} from "../myxl/require";
 import type { AppEnv } from "../types";
 
 export const registration = new Hono<AppEnv>();
@@ -32,8 +31,7 @@ registration.post("/register", async (c) => {
       ...formatApiResult(res),
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "Register error", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "Register error", message: String(e) }, 500);
   }
 });
 
@@ -62,7 +60,6 @@ registration.post("/register/puk", async (c) => {
       ...formatApiResult(res),
     });
   } catch (e) {
-    const html = renderErrorPage(c.req.raw, { title: "PUK error", message: String(e) });
-    return htmlResponse(html, 500);
+    return renderAppErrorPage(c, { title: "PUK error", message: String(e) }, 500);
   }
 });

@@ -1,10 +1,9 @@
 import { Hono } from "hono";
 import { EWALLET_FORM_METHODS, isAsyncPurchaseMethod } from "../clients/purchase/types";
-import { htmlResponse, renderErrorPage } from "../ssr";
 import { createFamilyLoopSseResponse, type FamilyLoopParams } from "../myxl/family-loop-runner";
 import { executeOptionPurchase } from "../myxl/purchase-executor";
 import { formatPurchaseResult } from "../myxl/purchase";
-import { renderActivePage, requireActiveSession } from "../myxl/require";
+import { renderActivePage, requireActiveSession , renderAppErrorPage} from "../myxl/require";
 import { createPurchaseJob, newJobId, readJobStatus, type PurchaseJobPayload } from "../queue/purchase-jobs";
 import { processPurchaseJob } from "../queue/purchase-consumer";
 import type { AppEnv } from "../types";
@@ -94,8 +93,7 @@ purchase.post("/purchase/family-loop/start", async (c) => {
   const body = await c.req.parseBody();
   const familyCode = String(body.family_code ?? "").trim();
   if (!familyCode) {
-    const html = renderErrorPage(c.req.raw, { title: "Invalid", message: "Family code wajib diisi." });
-    return htmlResponse(html, 400);
+    return renderAppErrorPage(c, { title: "Invalid", message: "Family code wajib diisi." }, 400);
   }
 
   const startFrom = Math.max(1, parseFormInt(String(body.start_from ?? ""), 1));
@@ -147,8 +145,7 @@ purchase.get("/internal/jobs/purchase/:id", async (c) => {
 
   const job = await readJobStatus(c.get("storage"), c.req.param("id"));
   if (!job) {
-    const html = renderErrorPage(c.req.raw, { title: "Job tidak ditemukan", message: "ID invalid atau sudah expired." });
-    return htmlResponse(html, 404);
+    return renderAppErrorPage(c, { title: "Job tidak ditemukan", message: "ID invalid atau sudah expired." }, 404);
   }
 
   if (job.status === "pending" || job.status === "running") {
@@ -183,8 +180,7 @@ purchase.post("/purchase/hot2", async (c) => {
   const walletNumber = String(body.wallet_number ?? "");
 
   if (!["balance", "qris", ...Object.keys(EWALLET_FORM_METHODS)].includes(method)) {
-    const html = renderErrorPage(c.req.raw, { title: "Metode invalid", message: method });
-    return htmlResponse(html, 400);
+    return renderAppErrorPage(c, { title: "Metode invalid", message: method }, 400);
   }
 
   if (method === "balance") {
@@ -244,8 +240,7 @@ purchase.post("/purchase/:option_code", async (c) => {
   if (method === "ewallet_dana") {
     const err = validateDanaNumber(walletNumber);
     if (err) {
-      const html = renderErrorPage(c.req.raw, { title: "Nomor DANA invalid", message: err });
-      return htmlResponse(html, 400);
+      return renderAppErrorPage(c, { title: "Nomor DANA invalid", message: err }, 400);
     }
   }
 
@@ -271,8 +266,7 @@ purchase.post("/purchase/:option_code", async (c) => {
       );
       return renderPurchaseResult(c, session, out.title, out.result, out.qrisCode);
     } catch (e) {
-      const html = renderErrorPage(c.req.raw, { title: "Pembelian gagal", message: String(e) });
-      return htmlResponse(html, 500);
+      return renderAppErrorPage(c, { title: "Pembelian gagal", message: String(e) }, 500);
     }
   }
 
@@ -301,9 +295,5 @@ purchase.post("/purchase/:option_code", async (c) => {
     });
   }
 
-  const html = renderErrorPage(c.req.raw, {
-    title: "Metode invalid",
-    message: `Method '${method}' tidak dikenal.`,
-  });
-  return htmlResponse(html, 400);
+  return renderAppErrorPage(c, { title: "Metode invalid", message: `Method '${method}' tidak dikenal.` }, 400);
 });
