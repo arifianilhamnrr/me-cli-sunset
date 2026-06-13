@@ -22,11 +22,18 @@ def format_ts(ts) -> str:
     except Exception:
         return str(ts)
 
+_ID_MONTHS_LONG = [
+    "januari", "februari", "maret", "april", "mei", "juni",
+    "juli", "agustus", "september", "oktober", "november", "desember",
+]
+
 def format_date(ts) -> str:
     if not ts:
         return "-"
     try:
-        return datetime.fromtimestamp(int(ts)).strftime("%Y-%m-%d")
+        from zoneinfo import ZoneInfo
+        dt = datetime.fromtimestamp(int(ts), tz=ZoneInfo("Asia/Jakarta"))
+        return f"{dt.day} {_ID_MONTHS_LONG[dt.month - 1]} {dt.year}"
     except Exception:
         return str(ts)
 

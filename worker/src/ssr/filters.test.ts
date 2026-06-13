@@ -12,7 +12,9 @@ describe("SSR filters", () => {
   });
 
   it("formatDate", () => {
-    expect(formatDate(1710000000)).toMatch(/^2024-/);
+    const out = formatDate(1710000000);
+    expect(out).toMatch(/\d+ \w+ \d{4}/);
+    expect(out).not.toMatch(/^\d{4}-\d{2}-\d{2}$/);
   });
 
   it("humanizeBytes", () => {

@@ -2,6 +2,21 @@
 
 const WIB_MONTHS = ["Jan", "Feb", "Mar", "Apr", "Mei", "Jun", "Jul", "Agt", "Sep", "Okt", "Nov", "Des"];
 
+const ID_MONTHS_LONG = [
+  "januari",
+  "februari",
+  "maret",
+  "april",
+  "mei",
+  "juni",
+  "juli",
+  "agustus",
+  "september",
+  "oktober",
+  "november",
+  "desember",
+];
+
 export function formatRp(value: unknown): string {
   try {
     const n = Number.parseInt(String(value), 10);
@@ -27,8 +42,17 @@ export function formatDate(ts: unknown): string {
   if (!ts) return "-";
   try {
     const d = new Date(Number.parseInt(String(ts), 10) * 1000);
-    const pad = (n: number) => String(n).padStart(2, "0");
-    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: "Asia/Jakarta",
+      day: "numeric",
+      month: "numeric",
+      year: "numeric",
+    }).formatToParts(d);
+    const get = (type: Intl.DateTimeFormatPartTypes) =>
+      parts.find((p) => p.type === type)?.value ?? "";
+    const monthIdx = Number.parseInt(get("month"), 10) - 1;
+    const month = ID_MONTHS_LONG[monthIdx] ?? get("month");
+    return `${get("day")} ${month} ${get("year")}`;
   } catch {
     return String(ts);
   }

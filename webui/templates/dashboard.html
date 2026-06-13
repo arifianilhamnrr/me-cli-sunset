@@ -19,15 +19,15 @@
       <a href="/accounts" class="text-xs text-slate-400 hover:text-slate-200">Ganti akun ↗</a>
     </div>
 
-    <div class="grid grid-cols-3 gap-3 sm:gap-4 mt-6">
+    <div class="flex flex-col gap-2 mt-6">
       {% for stat in [
         ('Pulsa', balance.remaining | rp if balance and balance.remaining is not none else '—'),
         ('Aktif s/d', balance.expired_at | date if balance and balance.expired_at else '—'),
         ('Points', (tier_info.current_point or 0) | string)
       ] %}
-      <div class="text-center p-3 rounded-[14px] neu-inset-card">
-        <div class="text-[0.6rem] uppercase tracking-widest text-slate-500">{{ stat[0] }}</div>
-        <div class="font-bold text-sm sm:text-base text-slate-200 mt-0.5 truncate">{{ stat[1] }}</div>
+      <div class="flex items-center justify-between gap-4 p-3 rounded-[14px] neu-inset-card">
+        <div class="text-[0.6rem] uppercase tracking-widest text-slate-500 shrink-0">{{ stat[0] }}</div>
+        <div class="font-bold text-sm sm:text-base text-slate-200 text-right">{{ stat[1] }}</div>
       </div>
       {% endfor %}
     </div>
