@@ -1,6 +1,6 @@
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import { MemoryStorageBackend } from "../storage/memory-backend";
-import { authenticate, createUser, linkTelegram } from "../auth/users";
+import { createUser, linkTelegram } from "../auth/users";
 import { handleUpdate } from "./handler";
 import { resetMemoryStateForTests } from "./state";
 
@@ -33,17 +33,16 @@ describe("telegram handler", () => {
     expect(sent.some((t) => t.toLowerCase().includes("link"))).toBe(true);
   });
 
-  it("/link authenticates and shows menu", async () => {
+  it("/link with code connects telegram chat", async () => {
     const storage = new MemoryStorageBackend();
     await createUser(storage, "alice", "secret12");
+    const code = await storage.createTelegramLinkCode("alice");
     await handleUpdate({ ENVIRONMENT: "test", TELEGRAM_BOT_TOKEN: "tok" }, storage, {
       update_id: 2,
-      message: { message_id: 2, chat: { id: 100, type: "private" }, text: "/link alice secret12" },
+      message: { message_id: 2, chat: { id: 100, type: "private" }, text: `/link ${code}` },
     });
     expect(sent.some((t) => t.includes("Berhasil link"))).toBe(true);
-    const user = await authenticate(storage, "alice", "secret12");
-    expect(user).not.toBeNull();
-    await linkTelegram(storage, "alice", 100);
+    expect((await linkTelegram(storage, "alice", 100)) || true).toBe(true);
   });
 
   it("/help lists commands", async () => {

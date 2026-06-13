@@ -76,10 +76,14 @@ export interface WebuiLoginContext {
   next?: string;
   users_count: number;
   user_theme?: string;
+  google_enabled?: boolean;
+  google_auth_url?: string;
 }
 
 export function renderWebuiLogin(_request: Request, ctx: WebuiLoginContext): string {
   const isRegister = ctx.mode === "register";
+  const googleUrl = ctx.google_auth_url ?? `/u/auth/google?intent=${isRegister ? "register" : "login"}`;
+  const loginGoogleUrl = isRegister ? googleUrl : `${googleUrl}${ctx.next && ctx.next !== "/" ? `&next=${encodeURIComponent(ctx.next)}` : ""}`;
   return renderTemplate("webui_login", {
     theme_class: themeClass(ctx.user_theme),
     page_title: isRegister ? "Register Webui-XL" : "Login Webui-XL",
@@ -91,6 +95,8 @@ export function renderWebuiLogin(_request: Request, ctx: WebuiLoginContext): str
     users_count: ctx.users_count,
     error: ctx.error,
     info: ctx.info,
+    google_enabled: Boolean(ctx.google_enabled),
+    google_auth_url: loginGoogleUrl,
   });
 }
 

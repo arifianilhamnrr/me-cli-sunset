@@ -64,30 +64,71 @@ export class D1R2Backend implements StorageBackend {
   private mapUserRow(row: WebUIUser): WebUIUser {
     const user: WebUIUser = {
       username: row.username,
-      password_hash: row.password_hash,
+      password_hash: row.password_hash ?? "",
       created_at: row.created_at,
     };
     if (row.theme) user.theme = row.theme;
     if (row.telegram_chat_id != null) user.telegram_chat_id = row.telegram_chat_id;
+    if (row.email) user.email = row.email;
+    if (row.google_sub) user.google_sub = row.google_sub;
+    if (row.google_email) user.google_email = row.google_email;
     return user;
+  }
+
+  private userSelectColumns(): string {
+    return `username, password_hash, created_at, theme, telegram_chat_id, email, google_sub, google_email`;
   }
 
   async loadUsers(): Promise<WebUIUser[]> {
     const result = await this.env.DB.prepare(
-      `SELECT username, password_hash, created_at, theme, telegram_chat_id
-       FROM webui_users ORDER BY created_at ASC`,
+      `SELECT ${this.userSelectColumns()} FROM webui_users ORDER BY created_at ASC`,
     ).all<WebUIUser>();
     return (result.results ?? []).map((row) => this.mapUserRow(row));
   }
 
   async findUserByTelegramChatId(chatId: number): Promise<WebUIUser | null> {
     const row = await this.env.DB.prepare(
-      `SELECT username, password_hash, created_at, theme, telegram_chat_id
-       FROM webui_users WHERE telegram_chat_id = ? LIMIT 1`,
+      `SELECT ${this.userSelectColumns()} FROM webui_users WHERE telegram_chat_id = ? LIMIT 1`,
     )
       .bind(chatId)
       .first<WebUIUser>();
     return row ? this.mapUserRow(row) : null;
+  }
+
+  async findUserByGoogleSub(googleSub: string): Promise<WebUIUser | null> {
+    const row = await this.env.DB.prepare(
+      `SELECT ${this.userSelectColumns()} FROM webui_users WHERE google_sub = ? LIMIT 1`,
+    )
+      .bind(googleSub)
+      .first<WebUIUser>();
+    return row ? this.mapUserRow(row) : null;
+  }
+
+  async createTelegramLinkCode(username: string, ttlSec = 600): Promise<string> {
+    const now = nowSec();
+    const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    const bytes = crypto.getRandomValues(new Uint8Array(8));
+    let code = "";
+    for (const b of bytes) code += alphabet[b % alphabet.length];
+    await this.env.DB.prepare(
+      `INSERT INTO telegram_link_codes (code, username, expires_at, created_at) VALUES (?, ?, ?, ?)`,
+    )
+      .bind(code, username.toLowerCase().trim(), now + ttlSec, now)
+      .run();
+    return code;
+  }
+
+  async consumeTelegramLinkCode(code: string): Promise<string | null> {
+    const normalized = String(code ?? "").trim().toUpperCase();
+    const row = await this.env.DB.prepare(
+      `SELECT username, expires_at FROM telegram_link_codes WHERE code = ?`,
+    )
+      .bind(normalized)
+      .first<{ username: string; expires_at: number }>();
+    if (!row) return null;
+    await this.env.DB.prepare(`DELETE FROM telegram_link_codes WHERE code = ?`).bind(normalized).run();
+    if (row.expires_at < nowSec()) return null;
+    return row.username;
   }
 
   async saveUsers(users: WebUIUser[]): Promise<void> {
@@ -97,14 +138,18 @@ export class D1R2Backend implements StorageBackend {
       ...users.map((user) =>
         this.env.DB.prepare(
           `INSERT INTO webui_users (
-             username, password_hash, created_at, theme, telegram_chat_id, updated_at
-           ) VALUES (?, ?, ?, ?, ?, ?)`,
+             username, password_hash, created_at, theme, telegram_chat_id,
+             email, google_sub, google_email, updated_at
+           ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         ).bind(
           user.username.toLowerCase().trim(),
-          user.password_hash,
+          user.password_hash ?? "",
           user.created_at || ts,
           user.theme ?? "dark",
           user.telegram_chat_id ?? null,
+          user.email ?? null,
+          user.google_sub ?? null,
+          user.google_email ?? null,
           ts,
         ),
       ),

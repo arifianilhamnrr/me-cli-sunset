@@ -3,7 +3,7 @@ import type { BotContext } from "./context";
 export type CommandHandler = (ctx: BotContext, chatId: number, args: string[]) => Promise<void>;
 
 export const COMMANDS: Record<string, CommandHandler> = {
-  "/start": (ctx, chatId) => ctx.cmdStart(chatId),
+  "/start": (ctx, chatId, args) => ctx.cmdStart(chatId, args),
   "/help": (ctx, chatId) => ctx.cmdHelp(chatId),
   "/link": (ctx, chatId, args) => ctx.cmdLink(chatId, args),
   "/unlink": (ctx, chatId) => ctx.cmdUnlink(chatId),

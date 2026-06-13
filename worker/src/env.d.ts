@@ -17,6 +17,8 @@ export interface Env {
   STORAGE_ENCRYPTION_KEY?: string;
   TELEGRAM_BOT_TOKEN?: string;
   TELEGRAM_WEBHOOK_SECRET?: string;
+  GOOGLE_CLIENT_ID?: string;
+  GOOGLE_CLIENT_SECRET?: string;
   // Bindings (enable in wrangler.toml when provisioned)
   DB?: D1Database;
   DATA?: R2Bucket;

@@ -4,6 +4,9 @@ export interface WebUIUser {
   created_at: number;
   theme?: string;
   telegram_chat_id?: number | null;
+  email?: string | null;
+  google_sub?: string | null;
+  google_email?: string | null;
 }
 
 export interface StorageBindings {
@@ -16,7 +19,10 @@ export interface StorageBindings {
 export interface StorageBackend {
   loadUsers(): Promise<WebUIUser[]>;
   findUserByTelegramChatId(chatId: number): Promise<WebUIUser | null>;
+  findUserByGoogleSub(googleSub: string): Promise<WebUIUser | null>;
   saveUsers(users: WebUIUser[]): Promise<void>;
+  createTelegramLinkCode(username: string, ttlSec?: number): Promise<string>;
+  consumeTelegramLinkCode(code: string): Promise<string | null>;
   getSessionSecret(): Promise<Uint8Array>;
   ensureUserDir(username: string): Promise<void>;
   getBlob(

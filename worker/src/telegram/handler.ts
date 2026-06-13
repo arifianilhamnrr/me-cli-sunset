@@ -76,6 +76,6 @@ export async function handleUpdate(
   if (user) {
     await ctx.sendMainMenu(chatId, user.username);
   } else {
-    await api.sendMessage(chatId, "Akun belum di-link. Gunakan:\n<code>/link username password</code>");
+    await api.sendMessage(chatId, "Akun belum di-link. Generate kode di WebUI lalu kirim:\n<code>/link KODE</code>");
   }
 }

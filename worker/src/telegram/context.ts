@@ -1,6 +1,6 @@
 import type { Env } from "../env";
 import {
-  authenticate,
+  getUser,
   getUserByTelegram,
   linkTelegram,
   unlinkTelegram,
@@ -54,7 +54,7 @@ export class BotContext {
     if (!user) {
       await this.api.sendMessage(
         chatId,
-        "Akun belum di-link. Gunakan:\n<code>/link username password</code>",
+        "Akun belum di-link. Generate kode di WebUI lalu kirim:\n<code>/link KODE</code>",
       );
     }
     return user;
@@ -423,7 +423,11 @@ export class BotContext {
 
   // ── Commands ──
 
-  async cmdStart(chatId: number): Promise<void> {
+  async cmdStart(chatId: number, args: string[] = []): Promise<void> {
+    if (args[0]) {
+      await this.cmdLinkWithCode(chatId, args[0]);
+      return;
+    }
     const user = await this.linkedUser(chatId);
     if (user) {
       await this.sendMainMenu(chatId, user.username);
@@ -432,7 +436,8 @@ export class BotContext {
     await this.api.sendMessage(
       chatId,
       "<b>me-cli Telegram Bot</b>\n\nBot ini terhubung dengan me-cli WebUI (MyXL).\n\n" +
-        "Langkah pertama: link akun kamu:\n<code>/link username password</code>\n\n" +
+        "Langkah pertama: buka WebUI → Monitoring → Telegram Settings → <b>Generate kode link</b>, lalu kirim:\n" +
+        "<code>/link KODE</code>\n\n" +
         "Setelah login, ketik /menu atau kirim pesan apa saja untuk membuka menu.",
     );
   }
@@ -442,17 +447,29 @@ export class BotContext {
   }
 
   async cmdLink(chatId: number, args: string[]): Promise<void> {
-    if (args.length < 2) {
-      await this.api.sendMessage(chatId, "Usage: <code>/link username password</code>");
+    if (!args[0]) {
+      await this.api.sendMessage(
+        chatId,
+        "Usage: <code>/link KODE</code>\n\nGenerate kode di WebUI → Monitoring → Telegram Settings.",
+      );
       return;
     }
-    const username = args[0];
-    const password = args.slice(1).join(" ");
-    const user = await authenticate(this.storage, username, password);
+    await this.cmdLinkWithCode(chatId, args[0]);
+  }
+
+  async cmdLinkWithCode(chatId: number, code: string): Promise<void> {
+    const username = await this.storage.consumeTelegramLinkCode(code);
+    if (!username) {
+      await this.api.sendMessage(chatId, "Kode tidak valid atau sudah expired. Generate kode baru di WebUI.");
+      return;
+    }
+
+    const user = await getUser(this.storage, username);
     if (!user) {
-      await this.api.sendMessage(chatId, "Username atau password salah.");
+      await this.api.sendMessage(chatId, "Akun WebUI tidak ditemukan.");
       return;
     }
+
     const existing = await this.linkedUser(chatId);
     if (existing && existing.username !== user.username) {
       await unlinkTelegram(this.storage, existing.username);

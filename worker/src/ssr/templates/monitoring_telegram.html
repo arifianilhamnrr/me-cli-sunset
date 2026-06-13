@@ -4,7 +4,8 @@
 {{#msg_webhook_fail}}<div class="alert-error">Gagal daftar webhook. Pastikan bot token valid lalu coba lagi.</div>{{/msg_webhook_fail}}
 {{#msg_test_ok}}<div class="alert-success">Test message terkirim!</div>{{/msg_test_ok}}
 {{#msg_test_fail}}<div class="alert-error">Gagal kirim test message.{{#has_test_info}} <span class="block mt-1 text-xs opacity-90">{{test_info}}</span>{{/has_test_info}}{{^has_test_info}} Cek bot token &amp; chat ID.{{/has_test_info}}</div>{{/msg_test_fail}}
-{{#msg_no_chat_id}}<div class="alert-warning break-words">Chat ID belum ada. Link dulu akun kamu via Telegram bot: <code class="break-all">/link username password</code></div>{{/msg_no_chat_id}}
+{{#msg_link_code}}<div class="alert-success">Kode link dibuat. Kirim ke bot: <code class="break-all">/link {{link_code}}</code> (expired 10 menit)</div>{{/msg_link_code}}
+{{#msg_no_chat_id}}<div class="alert-warning break-words">Chat ID belum ada. Generate kode link di bawah, lalu kirim ke bot: <code class="break-all">/link KODE</code></div>{{/msg_no_chat_id}}
 
 <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between mb-6">
   <h1 class="text-lg sm:text-xl font-bold text-white theme-light:text-slate-900 flex items-center gap-2 min-w-0">
@@ -172,13 +173,23 @@
       <p class="mb-2 font-medium text-slate-200 theme-light:text-slate-700">Cara menghubungkan akun:</p>
       <ol class="list-decimal list-inside space-y-2 text-xs text-slate-400 leading-relaxed">
         <li>Pastikan bot token sudah diisi dan bot aktif</li>
-        <li>Buka bot di Telegram</li>
-        <li>Kirim perintah:
-          <div class="mt-1 neu-box-sm rounded-lg px-2 py-1.5 font-mono text-[0.7rem] break-all text-slate-300">/link username password</div>
+        <li>Klik <b>Generate kode link</b> di bawah (berlaku 10 menit)</li>
+        <li>Buka bot di Telegram, kirim:
+          <div class="mt-1 neu-box-sm rounded-lg px-2 py-1.5 font-mono text-[0.7rem] break-all text-slate-300">/link KODE</div>
         </li>
-        <li>Ganti <code class="text-slate-300">username</code> dan <code class="text-slate-300">password</code> dengan akun WebUI kamu</li>
       </ol>
     </div>
+    <form action="/monitoring/telegram/link-code" method="post">
+      <button type="submit" class="btn btn-secondary text-xs w-full sm:w-auto px-4 py-2 inline-flex items-center justify-center gap-1.5">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path></svg>
+        Generate kode link
+      </button>
+    </form>
+    {{#has_link_code}}
+    <div class="neu-inset-card rounded-xl px-3 py-2.5">
+      <code class="text-sm font-mono text-emerald-300 break-all">/link {{link_code}}</code>
+    </div>
+    {{/has_link_code}}
   </div>
   {{/has_chat_id}}
 </div>

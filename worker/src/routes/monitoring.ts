@@ -39,6 +39,7 @@ function msgFlags(msg: string) {
     msg_saved: msg === "saved" || msg === "webhook_ok",
     msg_webhook_ok: msg === "webhook_ok",
     msg_webhook_fail: msg === "webhook_fail",
+    msg_link_code: msg === "link_code",
     msg_test_ok: msg === "test_ok",
     msg_test_fail: msg === "test_fail",
     msg_no_chat_id: msg === "no_chat_id",
@@ -158,11 +159,14 @@ monitoring.get("/monitoring/telegram", async (c) => {
   const page = await buildTelegramPageContext(c.req.raw, c.env, storage, webuiUser);
 
   const testInfo = String(c.req.query("test_info") ?? "").trim();
+  const linkCode = String(c.req.query("link_code") ?? "").trim();
   return renderWebuiPage(c, webuiUser, "monitoring_telegram", {
     page_title: "Telegram Settings · WebUI-XL",
     ...msgFlags(c.req.query("msg") ?? ""),
     test_info: testInfo,
     has_test_info: !!testInfo,
+    link_code: linkCode,
+    has_link_code: !!linkCode,
     ...page,
   });
 });
@@ -214,6 +218,15 @@ monitoring.post("/monitoring/telegram/webhook", async (c) => {
   const storage = c.get("storage");
   const webhook = await syncTelegramWebhook(c.req.raw, c.env, storage);
   return c.redirect(`/monitoring/telegram?msg=${webhook.ok ? "webhook_ok" : "webhook_fail"}`, 303);
+});
+
+monitoring.post("/monitoring/telegram/link-code", async (c) => {
+  const webuiUser = requireWebuiUser(c);
+  if (webuiUser instanceof Response) return webuiUser;
+
+  const storage = c.get("storage");
+  const code = await storage.createTelegramLinkCode(webuiUser.username);
+  return c.redirect(`/monitoring/telegram?msg=link_code&link_code=${encodeURIComponent(code)}`, 303);
 });
 
 monitoring.post("/monitoring/telegram/test", async (c) => {

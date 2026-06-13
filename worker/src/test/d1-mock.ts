@@ -4,7 +4,17 @@ type UserRow = {
   created_at: number;
   theme: string;
   telegram_chat_id: number | null;
+  email?: string | null;
+  google_sub?: string | null;
+  google_email?: string | null;
   updated_at: number;
+};
+
+type LinkCodeRow = {
+  code: string;
+  username: string;
+  expires_at: number;
+  created_at: number;
 };
 
 type R2IndexRow = {
@@ -61,6 +71,30 @@ class MockPreparedStatement implements D1PreparedStatement {
       return user ? ([{ ...user }] as T[]) : [];
     }
 
+    if (sql.includes("where google_sub =")) {
+      const [googleSub] = this.binds as [string];
+      const user = this.db.users.find((u) => u.google_sub === googleSub);
+      return user ? ([{ ...user }] as T[]) : [];
+    }
+
+    if (sql.includes("from telegram_link_codes where code =")) {
+      const [code] = this.binds as [string];
+      const row = this.db.linkCodes.find((r) => r.code === code);
+      return row ? ([{ ...row }] as T[]) : [];
+    }
+
+    if (sql.startsWith("insert into telegram_link_codes")) {
+      const [code, username, expires_at, created_at] = this.binds as [string, string, number, number];
+      this.db.linkCodes.push({ code, username, expires_at, created_at });
+      return [];
+    }
+
+    if (sql.startsWith("delete from telegram_link_codes")) {
+      const [code] = this.binds as [string];
+      this.db.linkCodes = this.db.linkCodes.filter((r) => r.code !== code);
+      return [];
+    }
+
     if (sql.startsWith("select username, password_hash")) {
       return this.db.users.map((u) => ({ ...u })) as T[];
     }
@@ -71,12 +105,25 @@ class MockPreparedStatement implements D1PreparedStatement {
     }
 
     if (sql.startsWith("insert into webui_users")) {
-      const [username, password_hash, created_at, theme, telegram_chat_id, updated_at] = this.binds as [
+      const [
+        username,
+        password_hash,
+        created_at,
+        theme,
+        telegram_chat_id,
+        email,
+        google_sub,
+        google_email,
+        updated_at,
+      ] = this.binds as [
         string,
         string,
         number,
         string,
         number | null,
+        string | null,
+        string | null,
+        string | null,
         number,
       ];
       this.db.users.push({
@@ -85,6 +132,9 @@ class MockPreparedStatement implements D1PreparedStatement {
         created_at,
         theme,
         telegram_chat_id,
+        email,
+        google_sub,
+        google_email,
         updated_at,
       });
       return [];
@@ -177,6 +227,7 @@ class MockPreparedStatement implements D1PreparedStatement {
 
 export class InMemoryD1Database implements D1Database {
   users: UserRow[] = [];
+  linkCodes: LinkCodeRow[] = [];
   meta = new Map<string, { value: Uint8Array; updated_at: number }>();
   r2Index: R2IndexRow[] = [];
 

@@ -7,6 +7,7 @@ import { resolveStorage } from "../storage/resolve";
 const PUBLIC_PATHS = [
   "/u/login",
   "/u/register",
+  "/u/auth/google",
   "/u/logout",
   "/static/",
   "/favicon",

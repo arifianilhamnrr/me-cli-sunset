@@ -51,6 +51,12 @@
       },
       "TELEGRAM_WEBHOOK_SECRET": {
         "description": "Optional — `secret_token` for Telegram `setWebhook`."
+      },
+      "GOOGLE_CLIENT_ID": {
+        "description": "Google OAuth Client ID for Sign in with Google."
+      },
+      "GOOGLE_CLIENT_SECRET": {
+        "description": "Google OAuth Client Secret."
       }
     }
   },

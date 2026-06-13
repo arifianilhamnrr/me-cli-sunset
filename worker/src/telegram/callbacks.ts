@@ -16,7 +16,7 @@ export async function handleCallback(
 
   if (data.startsWith("menu:")) {
     if (!user) {
-      await ctx.api.sendMessage(chatId, "Akun belum di-link. Gunakan:\n<code>/link username password</code>");
+      await ctx.api.sendMessage(chatId, "Akun belum di-link. Generate kode di WebUI lalu kirim:\n<code>/link KODE</code>");
       return;
     }
     await handleMenuAction(ctx, chatId, user.username, msgId, data.split(":", 2)[1] ?? "");

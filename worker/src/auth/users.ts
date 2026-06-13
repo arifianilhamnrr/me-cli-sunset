@@ -10,6 +10,16 @@ export interface WebuiUserRecord {
   created_at: number;
   theme?: string;
   telegram_chat_id?: number | null;
+  email?: string | null;
+  google_sub?: string | null;
+  google_email?: string | null;
+}
+
+export interface GoogleProfile {
+  sub: string;
+  email: string;
+  email_verified: boolean;
+  name?: string;
 }
 
 export async function loadUsers(storage: StorageBackend): Promise<WebuiUserRecord[]> {
@@ -24,15 +34,100 @@ export async function getUser(storage: StorageBackend, username: string): Promis
   return null;
 }
 
+export async function getUserByGoogleSub(
+  storage: StorageBackend,
+  googleSub: string,
+): Promise<WebuiUserRecord | null> {
+  return storage.findUserByGoogleSub(googleSub);
+}
+
+export function hasPasswordLogin(user: WebuiUserRecord | null | undefined): boolean {
+  return Boolean(user?.password_hash?.trim());
+}
+
+export function hasGoogleLogin(user: WebuiUserRecord | null | undefined): boolean {
+  return Boolean(user?.google_sub?.trim());
+}
+
 export async function authenticate(
   storage: StorageBackend,
   username: string,
   password: string,
 ): Promise<WebuiUserRecord | null> {
   const user = await getUser(storage, username);
-  if (!user) return null;
+  if (!user || !hasPasswordLogin(user)) return null;
   if (!(await verifyPassword(password, user.password_hash))) return null;
   return user;
+}
+
+async function allocateUsername(storage: StorageBackend, email: string, googleSub: string): Promise<string> {
+  let base = email.split("@")[0].toLowerCase().replace(/[^a-z0-9]/g, "");
+  if (!base || !/^[a-z0-9]/.test(base)) {
+    base = `u${googleSub.replace(/\D/g, "").slice(0, 12)}`;
+  }
+  if (base.length < 3) base = `${base}usr`;
+  base = base.slice(0, 24);
+
+  let suffix = 0;
+  let candidate = base;
+  if (!USERNAME_RE.test(candidate)) candidate = `u${googleSub.replace(/\D/g, "").slice(0, 8)}`;
+  while (await getUser(storage, candidate)) {
+    suffix += 1;
+    candidate = `${base.slice(0, 20)}${suffix}`;
+    if (!USERNAME_RE.test(candidate)) candidate = `u${googleSub.replace(/\D/g, "").slice(0, 6)}${suffix}`;
+  }
+  return candidate;
+}
+
+export async function createGoogleUser(
+  storage: StorageBackend,
+  profile: GoogleProfile,
+): Promise<{ ok: true; user: WebuiUserRecord } | { ok: false; error: string }> {
+  if (await getUserByGoogleSub(storage, profile.sub)) {
+    return { ok: false, error: "Akun Google sudah terdaftar." };
+  }
+
+  const username = await allocateUsername(storage, profile.email, profile.sub);
+  const users = await loadUsers(storage);
+  const user: WebuiUserRecord = {
+    username,
+    password_hash: "",
+    created_at: Math.floor(Date.now() / 1000),
+    email: profile.email,
+    google_sub: profile.sub,
+    google_email: profile.email,
+  };
+  users.push(user);
+  await storage.saveUsers(users);
+  await ensureUserBootstrap(storage, username);
+  return { ok: true, user };
+}
+
+export async function linkGoogleAccount(
+  storage: StorageBackend,
+  username: string,
+  profile: GoogleProfile,
+): Promise<{ ok: true; user: WebuiUserRecord } | { ok: false; error: string }> {
+  const normalized = (username || "").toLowerCase().trim();
+  const existingBySub = await getUserByGoogleSub(storage, profile.sub);
+  if (existingBySub && existingBySub.username !== normalized) {
+    return { ok: false, error: "Akun Google sudah terhubung ke user lain." };
+  }
+
+  const users = await loadUsers(storage);
+  let found: WebuiUserRecord | null = null;
+  for (const u of users) {
+    if (u.username.toLowerCase() === normalized) {
+      u.google_sub = profile.sub;
+      u.google_email = profile.email;
+      if (!u.email) u.email = profile.email;
+      found = u;
+      break;
+    }
+  }
+  if (!found) return { ok: false, error: "User tidak ditemukan." };
+  await storage.saveUsers(users);
+  return { ok: true, user: found };
 }
 
 export async function createUser(
@@ -134,6 +229,27 @@ export async function changePassword(
   const normalized = (username || "").toLowerCase().trim();
   for (const u of users) {
     if (u.username.toLowerCase() === normalized) {
+      u.password_hash = await hashPassword(newPassword);
+      await storage.saveUsers(users);
+      return { ok: true };
+    }
+  }
+  return { ok: false, error: "User tidak ditemukan." };
+}
+
+export async function setInitialPassword(
+  storage: StorageBackend,
+  username: string,
+  newPassword: string,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (newPassword.length < 6) {
+    return { ok: false, error: "Password minimal 6 karakter." };
+  }
+  const users = await loadUsers(storage);
+  const normalized = (username || "").toLowerCase().trim();
+  for (const u of users) {
+    if (u.username.toLowerCase() === normalized) {
+      if (hasPasswordLogin(u)) return { ok: false, error: "Password sudah di-set." };
       u.password_hash = await hashPassword(newPassword);
       await storage.saveUsers(users);
       return { ok: true };

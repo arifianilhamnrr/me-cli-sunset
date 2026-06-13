@@ -3,6 +3,7 @@ import { MemoryStorageBackend } from "../storage/memory-backend";
 import {
   authenticate,
   changePassword,
+  createGoogleUser,
   createUser,
   getTheme,
   getUserByTelegram,
@@ -28,6 +29,20 @@ describe("webui users", () => {
     const storage = new MemoryStorageBackend();
     const result = await createUser(storage, "X", "secret12");
     expect(result.ok).toBe(false);
+  });
+
+  it("createGoogleUser registers oauth-only account", async () => {
+    const storage = new MemoryStorageBackend();
+    const created = await createGoogleUser(storage, {
+      sub: "gid-1",
+      email: "newuser@gmail.com",
+      email_verified: true,
+    });
+    expect(created.ok).toBe(true);
+    if (created.ok) {
+      expect(created.user.password_hash).toBe("");
+      expect(created.user.google_sub).toBe("gid-1");
+    }
   });
 
   it("linkTelegram and unlinkTelegram manage chat id", async () => {
