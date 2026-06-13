@@ -1,0 +1,24 @@
+name = "webui-xl"
+main = "src/index.ts"
+compatibility_date = "2026-06-01"
+compatibility_flags = ["nodejs_compat"]
+
+[vars]
+ENVIRONMENT = "development"
+
+# Uncomment and fill after `wrangler d1 create` / `wrangler r2 bucket create`
+# [[d1_databases]]
+# binding = "DB"
+# database_name = "webui-xl"
+# database_id = "<d1-id>"
+
+# [[r2_buckets]]
+# binding = "DATA"
+# bucket_name = "webui-xl-data"
+
+# [[kv_namespaces]]
+# binding = "KV"
+# id = "<kv-id>"
+
+[dev]
+port = 8787

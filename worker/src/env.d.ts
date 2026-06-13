@@ -1,0 +1,22 @@
+export interface Env {
+  ENVIRONMENT: string;
+  // Secrets (wrangler secret put)
+  BASE_API_URL?: string;
+  BASE_CIAM_URL?: string;
+  BASIC_AUTH?: string;
+  UA?: string;
+  API_KEY?: string;
+  AES_KEY_ASCII?: string;
+  AX_FP_KEY?: string;
+  AX_FP?: string;
+  ENCRYPTED_FIELD_KEY?: string;
+  XDATA_KEY?: string;
+  AX_API_SIG_KEY?: string;
+  X_API_BASE_SECRET?: string;
+  SESSION_SECRET?: string;
+  STORAGE_ENCRYPTION_KEY?: string;
+  // Bindings (enable in wrangler.toml when provisioned)
+  DB?: D1Database;
+  DATA?: R2Bucket;
+  KV?: KVNamespace;
+}
