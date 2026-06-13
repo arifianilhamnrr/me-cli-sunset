@@ -8,8 +8,13 @@ import { dashboard } from "./routes/dashboard";
 import { hot } from "./routes/hot";
 import { packages } from "./routes/packages";
 import { purchase } from "./routes/purchase";
+import { decoySettings } from "./routes/decoy-settings";
+import { donasi } from "./routes/donasi";
+import { notification } from "./routes/notification";
 import { registration } from "./routes/registration";
 import { store } from "./routes/store";
+import { theme } from "./routes/theme";
+import { transaction } from "./routes/transaction";
 import { processPurchaseJob } from "./queue/purchase-consumer";
 import type { PurchaseQueueMessage } from "./queue/purchase-jobs";
 import { webuiAuth } from "./routes/webui-auth";
@@ -41,6 +46,11 @@ app.route("/", purchase);
 app.route("/", famplan);
 app.route("/", circle);
 app.route("/", registration);
+app.route("/", decoySettings);
+app.route("/", theme);
+app.route("/", donasi);
+app.route("/", notification);
+app.route("/", transaction);
 
 app.get("/demo/error", (c) => {
   const html = renderErrorPage(c.req.raw, {

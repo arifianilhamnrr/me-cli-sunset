@@ -6,6 +6,12 @@ import circleTemplate from "./templates/circle.html";
 import famplanResultTemplate from "./templates/famplan_result.html";
 import famplanTemplate from "./templates/famplan.html";
 import dashboardTemplate from "./templates/dashboard.html";
+import decoySettingsTemplate from "./templates/decoy_settings.html";
+import donasiTemplate from "./templates/donasi.html";
+import notificationDetailTemplate from "./templates/notification_detail.html";
+import notificationsTemplate from "./templates/notifications.html";
+import themeSettingsTemplate from "./templates/theme_settings.html";
+import transactionsTemplate from "./templates/transactions.html";
 import errorBodyTemplate from "./templates/error_body.html";
 import familyDetailTemplate from "./templates/family_detail.html";
 import familyLoopTemplate from "./templates/family_loop.html";
@@ -54,4 +60,10 @@ export const TEMPLATES: Record<string, string> = {
   validate_msisdn: validateMsisdnTemplate,
   register: registerTemplate,
   register_puk: registerPukTemplate,
+  decoy_settings: decoySettingsTemplate,
+  theme_settings: themeSettingsTemplate,
+  donasi: donasiTemplate,
+  notifications: notificationsTemplate,
+  notification_detail: notificationDetailTemplate,
+  transactions: transactionsTemplate,
 };

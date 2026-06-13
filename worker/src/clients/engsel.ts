@@ -215,6 +215,39 @@ export function createEngselClient(options: EngselClientOptions) {
     );
   }
 
+  async function getNotifications(idToken: string): Promise<Record<string, unknown> | null> {
+    const res = await sendApiRequest(
+      "api/v8/notification-non-grouping",
+      { is_enterprise: false, lang: "en" },
+      idToken,
+    );
+    if (typeof res === "string" || (typeof res === "object" && res.status !== "SUCCESS")) return null;
+    return res as Record<string, unknown>;
+  }
+
+  async function getNotificationDetail(
+    idToken: string,
+    notificationId: string,
+  ): Promise<Record<string, unknown> | null> {
+    const res = await sendApiRequest(
+      "api/v8/notification/detail",
+      { is_enterprise: false, lang: "en", notification_id: notificationId },
+      idToken,
+    );
+    if (typeof res === "string" || (typeof res === "object" && res.status !== "SUCCESS")) return null;
+    return res as Record<string, unknown>;
+  }
+
+  async function getTransactionHistory(idToken: string): Promise<Record<string, unknown> | null> {
+    const res = await sendApiRequest(
+      "payments/api/v8/transaction-history",
+      { is_enterprise: false, lang: "en" },
+      idToken,
+    );
+    if (typeof res === "string") return null;
+    return res as Record<string, unknown>;
+  }
+
   async function getPackageDetails(
     idToken: string,
     familyCode: string,
@@ -256,6 +289,9 @@ export function createEngselClient(options: EngselClientOptions) {
     unsubscribePackage,
     getTieringInfo,
     loginInfo,
+    getNotifications,
+    getNotificationDetail,
+    getTransactionHistory,
   };
 }
 

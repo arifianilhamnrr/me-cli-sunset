@@ -73,3 +73,21 @@ export async function ensureUserBootstrap(storage: StorageBackend, username: str
 export function getTheme(user: WebuiUserRecord | null | undefined): string {
   return user?.theme === "light" ? "light" : "dark";
 }
+
+export async function setTheme(
+  storage: StorageBackend,
+  username: string,
+  theme: string,
+): Promise<boolean> {
+  if (theme !== "dark" && theme !== "light") return false;
+  const users = await loadUsers(storage);
+  const normalized = (username || "").toLowerCase().trim();
+  for (const u of users) {
+    if (u.username.toLowerCase() === normalized) {
+      u.theme = theme;
+      await storage.saveUsers(users);
+      return true;
+    }
+  }
+  return false;
+}
