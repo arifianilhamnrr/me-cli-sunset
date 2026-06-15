@@ -1,5 +1,6 @@
 import type { EngselClient } from "../clients/engsel";
 import type { PaymentItem } from "../clients/purchase/types";
+import { ensureBuiltinDecoyDefaults } from "./decoy-settings";
 import { USER_DECOY_DIR } from "../storage/keys";
 import type { StorageBackend } from "../storage/types";
 import { getTextBlob } from "./blob";
@@ -117,6 +118,8 @@ export async function makeDecoyItem(
   slotKey?: string,
 ): Promise<{ item: PaymentItem; pkg: Record<string, unknown> } | { error: string }> {
   if (slotKey) return makeDecoyItemFromSlot(storage, username, engsel, idToken, slotKey);
+
+  await ensureBuiltinDecoyDefaults(storage, username);
 
   const prefix = decoyPrefix(subscriptionType);
   const decoyName = `${prefix}${decoyKind}`;

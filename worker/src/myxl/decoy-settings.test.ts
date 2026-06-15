@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  BUNDLED_DECOY_DEFAULTS,
   DECOY_NAME_RE,
   formatCustomDecoysForPurchase,
   formatDecoyRow,
@@ -32,6 +33,11 @@ describe("decoy-settings helpers", () => {
     expect(data.price).toBe(5000);
     expect(data.is_enterprise).toBe(true);
     expect(data.base_method).toBe("qris");
+  });
+
+  it("BUNDLED_DECOY_DEFAULTS includes XL PASS 20 Days balance decoy", () => {
+    expect(BUNDLED_DECOY_DEFAULTS["default-balance"]?.option_name).toBe("XL PASS 20 Days");
+    expect(BUNDLED_DECOY_DEFAULTS["default-balance"]?.price).toBe(800000);
   });
 
   it("formatCustomDecoysForPurchase builds purchase labels", () => {

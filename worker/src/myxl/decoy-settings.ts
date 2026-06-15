@@ -15,6 +15,20 @@ export const BUILTIN_SLOTS = [
 export const BUILTIN_KEYS = new Set<string>(BUILTIN_SLOTS.map((s) => s.key));
 export const DECOY_NAME_RE = /^[a-z0-9][a-z0-9_-]{0,30}$/;
 
+/** Seeded when a builtin slot has no user blob yet (mirrors repo decoy_data/). */
+export const BUNDLED_DECOY_DEFAULTS: Partial<Record<(typeof BUILTIN_SLOTS)[number]["key"], DecoyData>> = {
+  "default-balance": {
+    family_name: "XL PASS",
+    family_code: "fff99b6b-5a5d-4ba4-a55b-38f6aca6f91d",
+    is_enterprise: false,
+    migration_type: "NONE",
+    variant_code: "6986897d-9f09-4651-ac24-6efdf3dbcf3d",
+    option_name: "XL PASS 20 Days",
+    order: 1,
+    price: 800000,
+  },
+};
+
 const MIGRATION_TYPES = ["NONE", "PRE_TO_PRIOH", "PRIOH_TO_PRIO", "PRIO_TO_PRIOH"] as const;
 
 export interface DecoyData {
@@ -115,10 +129,23 @@ export function parseDecoyForm(body: Record<string, unknown>, includeBaseMethod 
   return data;
 }
 
+export async function ensureBuiltinDecoyDefaults(
+  storage: StorageBackend,
+  username: string,
+): Promise<void> {
+  for (const slot of BUILTIN_SLOTS) {
+    const objectKey = builtinObjectKey(slot.key);
+    if (await storage.blobExists(username, objectKey)) continue;
+    const bundled = BUNDLED_DECOY_DEFAULTS[slot.key];
+    if (bundled) await saveDecoyJson(storage, username, objectKey, bundled);
+  }
+}
+
 export async function listBuiltinDecoys(
   storage: StorageBackend,
   username: string,
 ): Promise<Array<(typeof BUILTIN_SLOTS)[number] & { data: DecoyData }>> {
+  await ensureBuiltinDecoyDefaults(storage, username);
   const out: Array<(typeof BUILTIN_SLOTS)[number] & { data: DecoyData }> = [];
   for (const slot of BUILTIN_SLOTS) {
     out.push({ ...slot, data: await loadDecoyJson(storage, username, builtinObjectKey(slot.key)) });
