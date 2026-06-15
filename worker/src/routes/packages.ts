@@ -44,12 +44,28 @@ packages.get("/packages/by-option", async (c) => {
     const customs = await listCustomDecoys(c.get("storage"), session.webuiUser.username);
     const customDecoys = formatCustomDecoysForPurchase(customs);
 
+    let tierPoints = 0;
+    let hasTierPoints = false;
+    try {
+      const tier = await session.clients.engsel.getTieringInfo(session.activeUser.tokens.id_token);
+      if (tier) {
+        tierPoints = Math.trunc(Number(tier.current_point ?? 0));
+        hasTierPoints = true;
+      }
+    } catch {
+      /* optional */
+    }
+
+    const detail = formatPackageDetail(pkg, code);
     return renderActivePage(c, session, "package_detail", {
-      page_title: `${formatPackageDetail(pkg, code).opt_name} · WebUI-XL`,
-      ...formatPackageDetail(pkg, code),
+      page_title: `${detail.opt_name} · WebUI-XL`,
+      ...detail,
       ...activeExpiry,
       custom_decoys: customDecoys,
       has_custom_decoys: customDecoys.length > 0,
+      current_points: tierPoints,
+      current_points_fmt: tierPoints.toLocaleString("id-ID"),
+      has_tier_points: hasTierPoints,
     });
   } catch (e) {
     return renderAppErrorPage(c, { title: "Gagal fetch", message: String(e) }, 500);

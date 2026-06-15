@@ -1,5 +1,11 @@
 import { formatRp, humanizeBytes } from "../ssr/filters";
 
+export function formatPoints(value: unknown): string {
+  const n = Number.parseInt(String(value ?? ""), 10);
+  if (Number.isNaN(n)) return String(value ?? "-");
+  return `${n.toLocaleString("id-ID")} Poin`;
+}
+
 export function formatPackageDetail(pkg: Record<string, unknown>, code: string) {
   const opt = (pkg.package_option as Record<string, unknown>) ?? {};
   const fam = (pkg.package_family as Record<string, unknown>) ?? {};
@@ -30,21 +36,28 @@ export function formatPackageDetail(pkg: Record<string, unknown>, code: string) 
     };
   });
 
+  const paymentFor = String(fam.payment_for ?? "BUY_PACKAGE");
+  const rcBonusType = String(fam.rc_bonus_type ?? "");
+  const usesPointsCurrency = rcBonusType === "MYREWARDS" || paymentFor === "REDEEM_VOUCHER";
+  const optPrice = opt.price;
+
   return {
     code,
     option_code: optionCode,
     family_code: familyCode,
     variant_code: variantCode,
     opt_name: opt.name ?? "",
-    opt_price: opt.price,
-    opt_price_rp: formatRp(opt.price),
+    opt_price: optPrice,
+    opt_price_rp: usesPointsCurrency ? formatPoints(optPrice) : formatRp(optPrice),
+    uses_points_currency: usesPointsCurrency,
+    is_redeem_voucher: paymentFor === "REDEEM_VOUCHER",
     opt_validity: opt.validity ?? "",
     has_point: Boolean(opt.point),
     opt_point: opt.point,
     fam_name: fam.name ?? "",
     variant_name: variant ? String(variant.name ?? "") : "",
     has_variant: Boolean(variant),
-    payment_for: String(fam.payment_for ?? "BUY_PACKAGE"),
+    payment_for: paymentFor,
     plan_type: fam.plan_type ?? "",
     is_enterprise: Boolean(fam.is_enterprise),
     opt_order: opt.order ?? 0,
@@ -59,13 +72,15 @@ export function formatPackageDetail(pkg: Record<string, unknown>, code: string) 
 
 export function formatFamilyDetail(family: Record<string, unknown>, code: string) {
   const fam = (family.package_family as Record<string, unknown>) ?? {};
+  const usesPointsCurrency =
+    String(fam.rc_bonus_type ?? "") === "MYREWARDS" || String(fam.payment_for ?? "") === "REDEEM_VOUCHER";
   const variants = ((family.package_variants as Record<string, unknown>[]) ?? []).map((variant) => ({
     name: variant.name ?? "",
     options: ((variant.package_options as Record<string, unknown>[]) ?? []).map((opt) => ({
       name: opt.name ?? "",
       package_option_code: opt.package_option_code ?? "",
       price: opt.price,
-      price_rp: formatRp(opt.price),
+      price_rp: usesPointsCurrency ? formatPoints(opt.price) : formatRp(opt.price),
       validity: opt.validity ?? "",
       has_point: Boolean(opt.point),
       point: opt.point,

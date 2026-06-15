@@ -2,7 +2,7 @@ import { Hono } from "hono";
 import { refreshActiveUserForPurchase } from "../myxl/accounts";
 import { EWALLET_FORM_METHODS, isAsyncPurchaseMethod } from "../clients/purchase/types";
 import { createFamilyLoopSseResponse, type FamilyLoopParams } from "../myxl/family-loop-runner";
-import { executeOptionPurchase } from "../myxl/purchase-executor";
+import { executeOptionPurchase, isRedeemPurchaseMethod } from "../myxl/purchase-executor";
 import { formatPurchaseResult } from "../myxl/purchase";
 import { renderActivePage, requireActiveSession , renderAppErrorPage} from "../myxl/require";
 import { createPurchaseJob, newJobId, readJobStatus, type PurchaseJobPayload } from "../queue/purchase-jobs";
@@ -238,6 +238,7 @@ purchase.post("/purchase/:option_code", async (c) => {
   const familyCode = String(body.family_code ?? "").trim();
   const variantCode = String(body.variant_code ?? "").trim();
   const walletNumber = String(body.wallet_number ?? "");
+  const destinationMsisdn = String(body.destination_msisdn ?? "").trim();
   const qrisAmount = parseFormInt(String(body.qris_amount ?? ""), -1);
   const overwriteAmount = parseFormInt(String(body.overwrite_amount ?? ""), -1);
 
@@ -268,7 +269,7 @@ purchase.post("/purchase/:option_code", async (c) => {
     tokens: session.activeUser.tokens,
   };
 
-  if (method === "balance") {
+  if (method === "balance" || isRedeemPurchaseMethod(method)) {
     try {
       const out = await executeOptionPurchase(
         rt,
@@ -284,6 +285,7 @@ purchase.post("/purchase/:option_code", async (c) => {
         familyCode,
         variantCode,
         overwriteAmount,
+        destinationMsisdn,
       );
       return renderPurchaseResult(c, session, out.title, out.result, out.qrisCode);
     } catch (e) {

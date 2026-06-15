@@ -54,8 +54,18 @@
 </details>
 {{/has_tnc}}
 
+{{#is_redeem_voucher}}
+{{#has_tier_points}}
+<div class="card mb-4 text-sm">
+  <div class="text-slate-400">Saldo poin lo sekarang</div>
+  <div class="text-2xl font-bold text-amber-300">{{current_points_fmt}} Poin</div>
+  <p class="text-xs text-slate-500 mt-1">Paket ini butuh <b>{{opt_price_rp}}</b> untuk tukar poin (opsi <b>Tukar Poin</b> di bawah).</p>
+</div>
+{{/has_tier_points}}
+{{/is_redeem_voucher}}
+
 <div class="card">
-  <h2 class="font-bold mb-3">Beli Paket</h2>
+  <h2 class="font-bold mb-3">{{#is_redeem_voucher}}Tukar / Klaim{{/is_redeem_voucher}}{{^is_redeem_voucher}}Beli Paket{{/is_redeem_voucher}}</h2>
   <form action="/purchase/{{option_code}}" method="post" class="space-y-3"
         data-confirm="Paket <b>{{opt_name}}</b> seharga <span class='text-emerald-300 font-bold'>{{opt_price_rp}}</span> bakal dibeli. Pastiin metode pembayaran udah benar — pembelian nggak bisa dibatalkan setelah submit."
         data-confirm-title="Konfirmasi Pembelian"
@@ -90,13 +100,25 @@
         {{/custom_decoys}}
         </optgroup>
         {{/has_custom_decoys}}
+        {{#is_redeem_voucher}}
+        <optgroup label="Tukar / Klaim (Poin &amp; Bonus)">
+          <option value="redeem_loyalty">Tukar Poin</option>
+          <option value="redeem_bounty">Klaim Bonus</option>
+          <option value="redeem_bounty_allotment">Kirim Bonus ke Nomor Lain</option>
+        </optgroup>
+        {{/is_redeem_voucher}}
       </select>
+    </div>
+    <div id="bonus-dest" style="display:none">
+      <label class="label">Nomor Tujuan Bonus (62...)</label>
+      <input class="form-input" type="text" name="destination_msisdn" pattern="62\d{8,13}" placeholder="62812xxxxxxxx">
+      <p class="text-xs text-slate-500 mt-1">Untuk kirim bonus ke nomor XL lain — format internasional 62, bukan 08.</p>
     </div>
     <div id="wallet-num" style="display:none">
       <label class="label">Nomor E-Wallet (08...)</label>
       <input class="form-input" type="text" name="wallet_number" pattern="08\d{7,12}">
     </div>
-    <div>
+    <div id="rewrite-price">
       <label class="label">Rewrite Harga (opsional)</label>
       <input class="form-input neu-input" type="number" name="overwrite_amount" min="0" placeholder="{{opt_price}}">
       <p class="text-xs text-slate-500 mt-1">Kosong = harga asli ({{opt_price_rp}}). Isi angka baru untuk override total pembayaran — sama seperti opsi overwrite di CLI.</p>
@@ -113,10 +135,21 @@
       var methodSel = document.querySelector('select[name=method]');
       var walletInput = document.querySelector('input[name=wallet_number]');
       var qrisInput = document.querySelector('input[name=qris_amount]');
+      var destInput = document.querySelector('input[name=destination_msisdn]');
+      var rewriteBox = document.getElementById('rewrite-price');
       function syncMethodFields() {
         var v = methodSel.value;
         var sel = methodSel.options[methodSel.selectedIndex];
         var label = sel.text || '';
+        var isRedeem = v.startsWith('redeem_');
+        if (rewriteBox) rewriteBox.style.display = isRedeem ? 'none' : 'block';
+        var needDest = v === 'redeem_bounty_allotment';
+        document.getElementById('bonus-dest').style.display = needDest ? 'block' : 'none';
+        if (destInput) {
+          destInput.disabled = !needDest;
+          destInput.required = needDest;
+          if (!needDest) destInput.value = '';
+        }
         var needWallet = v.startsWith('ewallet');
         document.getElementById('wallet-num').style.display = needWallet ? 'block' : 'none';
         if (walletInput) {

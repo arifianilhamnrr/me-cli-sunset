@@ -1,6 +1,9 @@
 import {
   EWALLET_FORM_METHODS,
+  bountyAllotment,
   settlementBalanceWithRetry,
+  settlementBounty,
+  settlementLoyalty,
   settlementMultipayment,
   settlementQris,
   getQrisCode,
@@ -161,6 +164,85 @@ export function resolvePurchaseAmount(defaultPrice: number, overwriteAmount = -1
   return defaultPrice;
 }
 
+const REDEEM_METHODS = new Set(["redeem_bounty", "redeem_loyalty", "redeem_bounty_allotment"]);
+
+export function isRedeemPurchaseMethod(method: string): boolean {
+  return REDEEM_METHODS.has(method);
+}
+
+export async function executeRedeemPurchase(
+  rt: PurchaseRuntime,
+  pkg: Record<string, unknown>,
+  method: string,
+  destinationMsisdn = "",
+): Promise<PurchaseExecutionResult> {
+  const opt = (pkg.package_option as Record<string, unknown>) ?? {};
+  const variant = (pkg.package_detail_variant as Record<string, unknown> | undefined) ?? {};
+  const optionCode = String(opt.package_option_code ?? "");
+  const price = Math.trunc(Number(opt.price ?? 0));
+  const itemName = String(opt.name ?? "");
+  const variantName = String(variant.name ?? "");
+  const tokenConfirmation = String(pkg.token_confirmation ?? "");
+  const tsToSign = Math.trunc(Number(pkg.timestamp ?? 0));
+
+  if (!tokenConfirmation || !tsToSign) {
+    return {
+      title: "Data paket tidak lengkap",
+      result: {
+        status: "FAILED",
+        message: "token_confirmation atau timestamp kosong. Muat ulang halaman paket lalu coba lagi.",
+      },
+    };
+  }
+
+  if (method === "redeem_bounty") {
+    const res = await settlementBounty(rt, {
+      tokenConfirmation,
+      tsToSign,
+      paymentTarget: optionCode,
+      price,
+      itemName: variantName || itemName,
+    });
+    return { title: "Klaim Bonus", result: res };
+  }
+
+  if (method === "redeem_loyalty") {
+    if (price <= 0) {
+      return {
+        title: "Poin tidak valid",
+        result: { status: "FAILED", message: "Harga paket (dalam poin) tidak valid untuk penukaran." },
+      };
+    }
+    const res = await settlementLoyalty(rt, {
+      tokenConfirmation,
+      tsToSign,
+      paymentTarget: optionCode,
+      points: price,
+    });
+    return { title: "Tukar Poin", result: res };
+  }
+
+  if (method === "redeem_bounty_allotment") {
+    const dest = destinationMsisdn.trim();
+    if (!/^62\d{8,13}$/.test(dest)) {
+      return {
+        title: "Nomor tujuan invalid",
+        result: { status: "FAILED", message: "Nomor tujuan harus diawali 62 (contoh: 62812...)." },
+      };
+    }
+    const res = await bountyAllotment(rt, {
+      tokenConfirmation,
+      tsToSign,
+      destinationMsisdn: dest,
+      itemCode: optionCode,
+      itemName,
+    });
+    return { title: "Kirim Bonus", result: res };
+  }
+
+  return { title: "Metode invalid", result: { message: method } };
+}
+
 export async function executeOptionPurchase(
   rt: PurchaseRuntime,
   storage: StorageBackend,
@@ -175,11 +257,17 @@ export async function executeOptionPurchase(
   familyCode = "",
   variantCode = "",
   overwriteAmount = -1,
+  destinationMsisdn = "",
 ): Promise<PurchaseExecutionResult> {
   const pkg = await engsel.getPackage(rt.tokens.id_token, optionCode, familyCode, variantCode);
   if (!pkg) {
     return { title: "Tidak ditemukan", result: { message: `Option ${optionCode} tidak ada.` } };
   }
+
+  if (isRedeemPurchaseMethod(method)) {
+    return executeRedeemPurchase(rt, pkg, method, destinationMsisdn);
+  }
+
   const item = buildPaymentItem(pkg);
   const resolvedPaymentFor = paymentForFromPackage(pkg, paymentFor);
   if (!item.token_confirmation) {

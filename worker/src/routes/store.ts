@@ -94,11 +94,27 @@ store.get("/store/redemables", async (c) => {
   try {
     const res = await storeClient.getRedeemables(session.activeUser.tokens.id_token, enterprise);
     const categories = formatRedeemables(res);
+
+    let currentPoints = 0;
+    let hasPoints = false;
+    try {
+      const tier = await session.clients.engsel.getTieringInfo(session.activeUser.tokens.id_token);
+      if (tier) {
+        currentPoints = Math.trunc(Number(tier.current_point ?? 0));
+        hasPoints = true;
+      }
+    } catch {
+      /* optional */
+    }
+
     return renderActivePage(c, session, "store_redemables", {
       page_title: "Redemables · WebUI-XL",
       categories,
       has_categories: categories.length > 0,
       enterprise,
+      has_points: hasPoints,
+      current_points: currentPoints,
+      current_points_fmt: currentPoints.toLocaleString("id-ID"),
     });
   } catch (e) {
     return renderAppErrorPage(c, { title: "Gagal fetch", message: String(e) }, 500);
