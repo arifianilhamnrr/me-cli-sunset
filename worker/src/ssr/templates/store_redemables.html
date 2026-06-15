@@ -20,7 +20,11 @@
 {{^has_categories}}<div class="card text-slate-400 text-sm">Belum ada redemable yang tersedia.</div>{{/has_categories}}
 {{#categories}}
 <section class="mb-6">
-  <h2 class="text-sm uppercase tracking-wider text-slate-400 mb-2">{{name}}{{#show_code}} <span class="text-[10px] font-mono text-slate-600">{{code}}</span>{{/show_code}}</h2>
+  <h2 class="text-sm uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-2">
+    {{#has_category_href}}<a href="{{category_href}}" class="hover:text-emerald-300">{{name}}</a>{{/has_category_href}}
+    {{^has_category_href}}<span>{{name}}</span>{{/has_category_href}}
+    {{#show_code}}<span class="text-[10px] font-mono text-slate-600">{{code}}</span>{{/show_code}}
+  </h2>
   {{^has_items}}<div class="card text-slate-500 text-sm">Kosong — belum ada promo aktif di kategori ini.</div>{{/has_items}}
   {{#has_items}}
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">

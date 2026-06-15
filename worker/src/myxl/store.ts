@@ -41,6 +41,13 @@ function isUuidLike(value: string): boolean {
 
 function formatValidUntil(raw: unknown): { validUntil: string; hasValidUntil: boolean } {
   if (raw == null || raw === "") return { validUntil: "", hasValidUntil: false };
+
+  if (typeof raw === "string" && /^\d{4}-\d{2}-\d{2}/.test(raw)) {
+    const year = Number(raw.slice(0, 4));
+    if (!Number.isFinite(year) || year < 2000) return { validUntil: "", hasValidUntil: false };
+    return { validUntil: raw.slice(0, 10), hasValidUntil: true };
+  }
+
   const ts = Number(raw);
   if (!Number.isFinite(ts) || ts <= 0) return { validUntil: "", hasValidUntil: false };
   const ms = ts > 1e12 ? ts : ts * 1000;
@@ -49,6 +56,19 @@ function formatValidUntil(raw: unknown): { validUntil: string; hasValidUntil: bo
     return { validUntil: "", hasValidUntil: false };
   }
   return { validUntil: d.toISOString().slice(0, 10), hasValidUntil: true };
+}
+
+export function resolveRedeemActionParam(
+  item: Record<string, unknown>,
+  categoryCode: string,
+  actionType: string,
+): string {
+  const fromItem = String(item.action_param ?? item.category_code ?? "").trim();
+  if (fromItem) return fromItem;
+  if (CATEGORY_ACTION_TYPES.has(actionType)) {
+    return categoryCode.trim();
+  }
+  return "";
 }
 
 export function formatStoreSegments(res: Record<string, unknown> | null) {
@@ -135,7 +155,7 @@ export function formatRedeemables(res: Record<string, unknown> | null, opts: Sto
       const item = r as Record<string, unknown>;
       const { validUntil, hasValidUntil } = formatValidUntil(item.valid_until);
       const actionType = String(item.action_type ?? "");
-      const actionParam = String(item.action_param ?? "");
+      const actionParam = resolveRedeemActionParam(item, categoryCode, actionType);
       const href = storeActionHref(actionType, actionParam, opts);
       return {
         name: item.name ?? "-",
@@ -149,15 +169,42 @@ export function formatRedeemables(res: Record<string, unknown> | null, opts: Sto
         has_href: Boolean(href),
       };
     });
+    const landingItem = items.find((it) => CATEGORY_ACTION_TYPES.has(String(it.action_type)));
+    const categoryHref = landingItem?.has_href ? String(landingItem.href) : null;
     categories.push({
       name: cat.category_name ?? "-",
       code: categoryCode,
       show_code: Boolean(categoryCode) && !isUuidLike(categoryCode),
+      category_href: categoryHref,
+      has_category_href: Boolean(categoryHref),
       redeem_items: items,
       has_items: items.length > 0,
     });
   }
   return categories;
+}
+
+function unwrapFamilyRow(raw: unknown): Record<string, unknown> | null {
+  if (!raw || typeof raw !== "object") return null;
+  const row = raw as Record<string, unknown>;
+  const nested = row.package_family;
+  if (nested && typeof nested === "object") {
+    return nested as Record<string, unknown>;
+  }
+  return row;
+}
+
+function collectCategoryFamilies(payload: Record<string, unknown>): unknown[] {
+  const direct = [
+    payload.families,
+    payload.results,
+    payload.package_families,
+    payload.items,
+  ];
+  for (const candidate of direct) {
+    if (Array.isArray(candidate) && candidate.length > 0) return candidate;
+  }
+  return [];
 }
 
 export function formatCategoryFamilies(
@@ -166,18 +213,18 @@ export function formatCategoryFamilies(
 ): Array<Record<string, unknown>> {
   if (!res) return [];
   const payload = (res.data as Record<string, unknown> | undefined) ?? res;
-  const list = (payload.families ??
-    payload.results ??
-    payload.package_families ??
-    []) as unknown[];
+  const list = collectCategoryFamilies(payload);
   const entQ = enterpriseQuery(opts.enterprise);
   const out: Array<Record<string, unknown>> = [];
   for (const f of list) {
-    const row = f as Record<string, unknown>;
-    const id = String(row.package_family_code ?? row.id ?? row.family_code ?? "").trim();
+    const row = unwrapFamilyRow(f);
+    if (!row) continue;
+    const id = String(
+      row.package_family_code ?? row.id ?? row.family_code ?? row.code ?? "",
+    ).trim();
     if (!id) continue;
-    const label = String(row.name ?? row.label ?? row.family_name ?? "-");
-    const icon = String(row.icon_url ?? row.icon ?? "");
+    const label = String(row.name ?? row.label ?? row.family_name ?? row.title ?? "-");
+    const icon = String(row.icon_url ?? row.icon ?? row.image_url ?? "");
     out.push({
       id,
       label,

@@ -5,6 +5,7 @@ import {
   formatRedeemables,
   formatStorePackages,
   redeemActionLabel,
+  resolveRedeemActionParam,
   storeActionHref,
 } from "./store";
 
@@ -17,6 +18,19 @@ describe("store helpers", () => {
       "/store/category?code=cat-2&source=MYPOINT_LANDING&enterprise=true",
     );
     expect(storeActionHref("OTHER", "x")).toBeNull();
+  });
+
+  it("resolveRedeemActionParam falls back to parent category_code for landings", () => {
+    expect(
+      resolveRedeemActionParam(
+        { action_type: "MYPOINT_LANDING", action_param: "" },
+        "19e9c819-48b6-4d3a-8175-e7d6cedc6f3d",
+        "MYPOINT_LANDING",
+      ),
+    ).toBe("19e9c819-48b6-4d3a-8175-e7d6cedc6f3d");
+    expect(
+      resolveRedeemActionParam({ action_type: "PDP", action_param: "" }, "cat-x", "PDP"),
+    ).toBe("");
   });
 
   it("formatRedeemables skips invalid valid_until and hides uuid category codes", () => {
@@ -43,6 +57,33 @@ describe("store helpers", () => {
     expect(item.has_valid_until).toBe(false);
     expect(item.has_href).toBe(true);
     expect(redeemActionLabel("MYPOINT_LANDING")).toBe("XL Poin");
+    expect(cats[0].has_category_href).toBe(true);
+  });
+
+  it("formatRedeemables links MYPOINT_LANDING when action_param is empty", () => {
+    const cats = formatRedeemables({
+      data: {
+        categories: [
+          {
+            category_name: "myRewards",
+            category_code: "7a05d8d7-1111-2222-3333-444455556666",
+            redeemables: [
+              {
+                name: "Let's, Redeem Your Rewards",
+                valid_until: "1970-01-01",
+                action_type: "LOYALTY",
+                action_param: "",
+              },
+            ],
+          },
+        ],
+      },
+    });
+    const item = (cats[0].redeem_items as Record<string, unknown>[])[0];
+    expect(item.has_href).toBe(true);
+    expect(item.has_valid_until).toBe(false);
+    expect(String(item.href)).toContain("7a05d8d7-1111-2222-3333-444455556666");
+    expect(String(item.href)).toContain("source=LOYALTY");
   });
 
   it("formatCategoryFamilies extracts family rows", () => {
@@ -53,6 +94,25 @@ describe("store helpers", () => {
     });
     expect(rows).toHaveLength(1);
     expect(rows[0].href).toContain("fam-1");
+  });
+
+  it("formatCategoryFamilies unwraps nested package_family objects", () => {
+    const rows = formatCategoryFamilies({
+      data: {
+        package_families: [
+          {
+            package_family: {
+              package_family_code: "fam-nested",
+              name: "Nested Reward",
+              icon_url: "http://y",
+            },
+          },
+        ],
+      },
+    });
+    expect(rows).toHaveLength(1);
+    expect(rows[0].id).toBe("fam-nested");
+    expect(rows[0].label).toBe("Nested Reward");
   });
 
   it("categoryPageTitle maps sources", () => {
