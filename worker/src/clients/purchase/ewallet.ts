@@ -1,5 +1,11 @@
 import type { EwalletMethod, PaymentItem, SettlementOptions } from "./types";
-import { postSignedSettlement, prepareSettlement, resolveAmount, type PurchaseRuntime } from "./common";
+import {
+  postSignedSettlement,
+  prepareSettlement,
+  resolveAmount,
+  resolvePaymentFor,
+  type PurchaseRuntime,
+} from "./common";
 
 export async function settlementMultipayment(
   rt: PurchaseRuntime,
@@ -19,13 +25,15 @@ export async function settlementMultipayment(
   const prep = await prepareSettlement(rt, items, tokenIdx);
   if (!prep.ok) return prep.error;
 
+  const paymentFor = resolvePaymentFor(options.paymentFor);
+  const settlementItems = prep.items;
   const path = "payments/api/v8/settlement-multipayment/ewallet";
   const payload: Record<string, unknown> = {
     akrab: { akrab_members: [], akrab_parent_alias: "", members: [] },
     can_trigger_rating: false,
     total_discount: 0,
     coupon: "",
-    payment_for: options.paymentFor,
+    payment_for: paymentFor,
     topup_number: "",
     is_enterprise: false,
     autobuy: {
@@ -38,14 +46,14 @@ export async function settlementMultipayment(
     is_myxl_wallet: false,
     wallet_number: walletNumber,
     additional_data: {},
-    total_amount: amount,
+    total_amount: Math.trunc(amount),
     total_fee: 0,
     is_use_point: false,
     lang: "en",
-    items,
+    items: settlementItems,
     verification_token: prep.tokenPayment,
     payment_method: paymentMethod,
-    timestamp: Math.floor(Date.now() / 1000),
+    timestamp: prep.tsToSign,
   };
 
   return postSignedSettlement(rt, {
@@ -55,6 +63,6 @@ export async function settlementMultipayment(
     tokenPayment: prep.tokenPayment,
     tsToSign: prep.tsToSign,
     paymentMethod,
-    paymentFor: options.paymentFor,
+    paymentFor,
   });
 }

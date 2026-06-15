@@ -235,6 +235,8 @@ purchase.post("/purchase/:option_code", async (c) => {
   const body = await c.req.parseBody();
   const method = String(body.method ?? "");
   const paymentFor = String(body.payment_for ?? "BUY_PACKAGE");
+  const familyCode = String(body.family_code ?? "").trim();
+  const variantCode = String(body.variant_code ?? "").trim();
   const walletNumber = String(body.wallet_number ?? "");
   const qrisAmount = parseFormInt(String(body.qris_amount ?? ""), -1);
 
@@ -278,6 +280,8 @@ purchase.post("/purchase/:option_code", async (c) => {
         paymentFor,
         walletNumber,
         qrisAmount,
+        familyCode,
+        variantCode,
       );
       return renderPurchaseResult(c, session, out.title, out.result, out.qrisCode);
     } catch (e) {
@@ -296,6 +300,8 @@ purchase.post("/purchase/:option_code", async (c) => {
       walletNumber,
       qrisAmount,
       optionCode,
+      familyCode,
+      variantCode,
       createdAt: Math.floor(Date.now() / 1000),
     });
 

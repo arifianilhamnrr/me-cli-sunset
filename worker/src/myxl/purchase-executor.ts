@@ -167,8 +167,10 @@ export async function executeOptionPurchase(
   paymentFor: string,
   walletNumber: string,
   qrisAmount: number,
+  familyCode = "",
+  variantCode = "",
 ): Promise<PurchaseExecutionResult> {
-  const pkg = await engsel.getPackage(rt.tokens.id_token, optionCode);
+  const pkg = await engsel.getPackage(rt.tokens.id_token, optionCode, familyCode, variantCode);
   if (!pkg) {
     return { title: "Tidak ditemukan", result: { message: `Option ${optionCode} tidak ada.` } };
   }
@@ -180,6 +182,15 @@ export async function executeOptionPurchase(
       result: {
         status: "FAILED",
         message: "token_confirmation kosong. Muat ulang halaman paket lalu coba lagi.",
+      },
+    };
+  }
+  if (!item.item_price || item.item_price <= 0) {
+    return {
+      title: "Harga tidak valid",
+      result: {
+        status: "FAILED",
+        message: "Harga paket tidak valid. Muat ulang halaman paket lalu coba lagi.",
       },
     };
   }

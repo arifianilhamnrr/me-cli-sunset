@@ -1,6 +1,6 @@
 import type { Env } from "../env";
 import { createMyXlClients } from "../myxl/clients";
-import { getActiveUserSafe } from "../myxl/accounts";
+import { getActiveUserSafe, refreshActiveUserForPurchase } from "../myxl/accounts";
 import {
   executeBalancePurchase,
   executeEwalletPurchase,
@@ -106,9 +106,9 @@ export async function processPurchaseJob(env: Env, msg: PurchaseQueueMessage): P
       out = await executeHot2Job(env, msg, storage);
     } else {
       const clients = createMyXlClients(env, storage, msg.username);
-      const active = await getActiveUserSafe(storage, msg.username, clients);
+      const active = await refreshActiveUserForPurchase(storage, msg.username, clients);
       if (!active) {
-        out = { title: "Login dulu", result: { message: "Belum ada akun aktif." } };
+        out = { title: "Login dulu", result: { message: "Belum ada akun aktif atau token expired." } };
       } else {
         const rt = { config: clients.config, engsel: clients.engsel, tokens: active.tokens };
         out = await executeOptionPurchase(
@@ -122,6 +122,8 @@ export async function processPurchaseJob(env: Env, msg: PurchaseQueueMessage): P
           msg.paymentFor,
           msg.walletNumber,
           msg.qrisAmount,
+          msg.familyCode ?? "",
+          msg.variantCode ?? "",
         );
       }
     }

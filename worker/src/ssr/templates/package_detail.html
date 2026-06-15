@@ -59,6 +59,8 @@
   <p class="text-sm text-slate-400 mb-3">Pilih metode pembayaran di bawah.</p>
   <form action="/purchase/{{option_code}}" method="post" class="space-y-3">
     <input type="hidden" name="payment_for" value="{{payment_for}}">
+    <input type="hidden" name="family_code" value="{{family_code}}">
+    <input type="hidden" name="variant_code" value="{{variant_code}}">
     <input type="hidden" name="price" value="{{opt_price}}">
     <input type="hidden" name="item_name" value="{{opt_name}}">
     <div>

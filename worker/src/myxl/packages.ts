@@ -4,8 +4,12 @@ export function formatPackageDetail(pkg: Record<string, unknown>, code: string) 
   const opt = (pkg.package_option as Record<string, unknown>) ?? {};
   const fam = (pkg.package_family as Record<string, unknown>) ?? {};
   const variant = (pkg.package_detail_variant as Record<string, unknown>) ?? null;
+  const pkgVariant = (pkg.package_variant as Record<string, unknown> | undefined) ?? null;
   const optionCode = String(opt.package_option_code ?? code);
   const familyCode = String(fam.package_family_code ?? "");
+  const variantCode = String(
+    pkgVariant?.package_variant_code ?? (variant as Record<string, unknown> | null)?.package_variant_code ?? "",
+  );
   const benefits = ((opt.benefits as Record<string, unknown>[]) ?? []).map((b) => {
     const dt = String(b.data_type ?? "");
     const total = Number(b.total ?? 0);
@@ -30,6 +34,7 @@ export function formatPackageDetail(pkg: Record<string, unknown>, code: string) 
     code,
     option_code: optionCode,
     family_code: familyCode,
+    variant_code: variantCode,
     opt_name: opt.name ?? "",
     opt_price: opt.price,
     opt_price_rp: formatRp(opt.price),

@@ -6,6 +6,7 @@ import { GMT7_OFFSET_MIN, javaLikeTimestamp } from "../time";
 import { decryptApiResponse, encryptSignXdata } from "../xdata";
 import { buildEncryptedField, makeXSignaturePayment, randomIvHex16 } from "../../crypto/crypto-helper";
 import type { MyXlTokens } from "../../myxl/accounts";
+import { normalizePaymentItem } from "../../myxl/purchase";
 import type { PaymentItem } from "./types";
 
 export interface PurchaseRuntime {
@@ -34,9 +35,18 @@ export function resolveAmount(
   overwriteAmount: number,
   amountIdx: number,
 ): number {
-  if (overwriteAmount !== -1) return overwriteAmount;
+  if (overwriteAmount !== -1) return Math.trunc(overwriteAmount);
   const idx = resolveItemIndex(items, amountIdx);
-  return items[idx]?.item_price ?? 0;
+  return Math.trunc(items[idx]?.item_price ?? 0);
+}
+
+export function resolvePaymentFor(value: string | undefined): string {
+  const trimmed = String(value ?? "").trim();
+  return trimmed || "BUY_PACKAGE";
+}
+
+export function normalizeSettlementItems(items: PaymentItem[]): PaymentItem[] {
+  return items.map((item) => normalizePaymentItem(item));
 }
 
 export async function getPaymentMethods(
@@ -80,12 +90,14 @@ export async function postSignedSettlement(
 ): Promise<Record<string, unknown> | string> {
   const fetchFn = rt.fetchFn ?? fetch;
   const apiHost = hostFromUrl(rt.config.baseApiUrl);
+  const paymentFor = resolvePaymentFor(req.paymentFor);
+  const payload = { ...req.payload, timestamp: req.tsToSign };
   const encrypted = await encryptSignXdata(
     rt.config.crypto,
     "POST",
     req.path,
     rt.tokens.id_token,
-    req.payload,
+    payload,
   );
   const xtime = encrypted.encrypted_body.xtime;
   const sigTimeSec = Math.floor(xtime / 1000);
@@ -96,7 +108,7 @@ export async function postSignedSettlement(
     req.paymentTargets,
     req.tokenPayment,
     req.paymentMethod,
-    req.paymentFor,
+    paymentFor,
     req.path,
   );
 
@@ -127,13 +139,27 @@ export async function prepareSettlement(
   items: PaymentItem[],
   tokenConfirmationIdx: number,
 ): Promise<
-  | { ok: true; tokenPayment: string; tsToSign: number; paymentTargets: string }
+  | { ok: true; tokenPayment: string; tsToSign: number; paymentTargets: string; items: PaymentItem[] }
   | { ok: false; error: Record<string, unknown> | string }
 > {
-  await rt.engsel.interceptPage(rt.tokens.id_token, items[0].item_code, false);
-  const idx = resolveItemIndex(items, tokenConfirmationIdx);
-  const tokenConfirmation = items[idx].token_confirmation;
-  const paymentTarget = items[idx].item_code;
+  const normalizedItems = normalizeSettlementItems(items);
+  if (!normalizedItems.length || !normalizedItems[0].item_code) {
+    return { ok: false, error: { status: "FAILED", message: "Item pembayaran tidak valid." } };
+  }
+
+  await rt.engsel.interceptPage(rt.tokens.id_token, normalizedItems[0].item_code, false);
+  const idx = resolveItemIndex(normalizedItems, tokenConfirmationIdx);
+  const tokenConfirmation = normalizedItems[idx].token_confirmation;
+  const paymentTarget = normalizedItems[idx].item_code;
+  if (!tokenConfirmation) {
+    return {
+      ok: false,
+      error: {
+        status: "FAILED",
+        message: "token_confirmation kosong. Muat ulang halaman paket lalu coba lagi.",
+      },
+    };
+  }
   const methods = await getPaymentMethods(rt, tokenConfirmation, paymentTarget);
   if (!("token_payment" in methods)) {
     return { ok: false, error: methods };
@@ -142,7 +168,8 @@ export async function prepareSettlement(
     ok: true,
     tokenPayment: String(methods.token_payment),
     tsToSign: Number(methods.timestamp),
-    paymentTargets: buildPaymentTargets(items),
+    paymentTargets: buildPaymentTargets(normalizedItems),
+    items: normalizedItems,
   };
 }
 

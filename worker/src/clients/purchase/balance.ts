@@ -1,17 +1,12 @@
 import type { PaymentItem, SettlementOptions } from "./types";
-import { normalizePaymentItem } from "../../myxl/purchase";
 import {
   buildBalanceEncryptedFields,
   postSignedSettlement,
   prepareSettlement,
   resolveAmount,
+  resolvePaymentFor,
   type PurchaseRuntime,
 } from "./common";
-
-function resolvePaymentFor(value: string | undefined): string {
-  const trimmed = String(value ?? "").trim();
-  return trimmed || "BUY_PACKAGE";
-}
 
 export async function settlementBalance(
   rt: PurchaseRuntime,
@@ -30,7 +25,7 @@ export async function settlementBalance(
   if (!prep.ok) return prep.error;
 
   const paymentFor = resolvePaymentFor(options.paymentFor);
-  const normalizedItems = items.map((item) => normalizePaymentItem(item));
+  const settlementItems = prep.items;
   const encrypted = await buildBalanceEncryptedFields(rt);
   const path = "payments/api/v8/settlement-multipayment";
   const payload: Record<string, unknown> = {
@@ -50,7 +45,7 @@ export async function settlementBalance(
     is_use_point: false,
     lang: "en",
     payment_method: "BALANCE",
-    timestamp: Math.floor(Date.now() / 1000),
+    timestamp: prep.tsToSign,
     points_gained: 0,
     can_trigger_rating: false,
     akrab_members: [],
@@ -69,7 +64,7 @@ export async function settlementBalance(
     wallet_number: "",
     encrypted_authentication_id: encrypted.encrypted_authentication_id,
     additional_data: {
-      original_price: normalizedItems[normalizedItems.length - 1].item_price,
+      original_price: settlementItems[settlementItems.length - 1].item_price,
       is_spend_limit_temporary: false,
       migration_type: "",
       akrab_m2m_group_id: "false",
@@ -90,7 +85,7 @@ export async function settlementBalance(
     },
     total_amount: Math.trunc(amount),
     is_using_autobuy: false,
-    items: normalizedItems,
+    items: settlementItems,
   };
 
   return postSignedSettlement(rt, {

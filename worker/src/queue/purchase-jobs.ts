@@ -15,6 +15,8 @@ export interface PurchaseJobPayload {
   walletNumber: string;
   qrisAmount: number;
   optionCode?: string;
+  familyCode?: string;
+  variantCode?: string;
   hot2Idx?: number;
   createdAt: number;
 }
