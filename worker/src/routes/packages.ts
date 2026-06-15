@@ -1,4 +1,5 @@
 import { Hono } from "hono";
+import { formatCustomDecoysForPurchase, listCustomDecoys } from "../myxl/decoy-settings";
 import { formatFamilyDetail, formatPackageDetail } from "../myxl/packages";
 import { activeExpiryForQuota, formatMyPackages } from "../myxl/quota";
 import { renderActivePage, requireActiveSession , renderAppErrorPage} from "../myxl/require";
@@ -40,10 +41,15 @@ packages.get("/packages/by-option", async (c) => {
       /* optional — catalog detail still renders */
     }
 
+    const customs = await listCustomDecoys(c.get("storage"), session.webuiUser.username);
+    const customDecoys = formatCustomDecoysForPurchase(customs);
+
     return renderActivePage(c, session, "package_detail", {
       page_title: `${formatPackageDetail(pkg, code).opt_name} · WebUI-XL`,
       ...formatPackageDetail(pkg, code),
       ...activeExpiry,
+      custom_decoys: customDecoys,
+      has_custom_decoys: customDecoys.length > 0,
     });
   } catch (e) {
     return renderAppErrorPage(c, { title: "Gagal fetch", message: String(e) }, 500);

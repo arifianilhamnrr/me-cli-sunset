@@ -126,6 +126,20 @@ export async function listBuiltinDecoys(
   return out;
 }
 
+export function formatCustomDecoysForPurchase(
+  customs: Array<{ name: string; base_method: string }>,
+): Array<{ name: string; base_method: string; label: string; is_qris: boolean }> {
+  return customs.map((c) => {
+    const isQris = c.base_method === "qris";
+    return {
+      name: c.name,
+      base_method: c.base_method,
+      is_qris: isQris,
+      label: `${isQris ? "QRIS" : "Pulsa"} + Decoy (${c.name})`,
+    };
+  });
+}
+
 export async function listCustomDecoys(
   storage: StorageBackend,
   username: string,

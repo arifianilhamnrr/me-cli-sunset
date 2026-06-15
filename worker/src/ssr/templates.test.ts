@@ -136,6 +136,33 @@ describe("MyXL templates", () => {
     expect(html).toContain("Paket Aktif");
   });
 
+  it("renders package detail with decoy purchase methods", () => {
+    const html = renderLayout("package_detail", new Request("http://localhost/packages/by-option"), {
+      page_title: "XL PASS 20 Days",
+      fam_name: "XL PASS",
+      opt_name: "XL PASS 20 Days",
+      opt_price: 800000,
+      opt_price_rp: "Rp 800.000",
+      opt_validity: "20 days",
+      option_code: "OPT-1",
+      family_code: "fff99b6b-5a5d-4ba4-a55b-38f6aca6f91d",
+      variant_code: "6986897d-9f09-4651-ac24-6efdf3dbcf3d",
+      payment_for: "BUY_PACKAGE",
+      plan_type: "PREPAID",
+      is_enterprise: false,
+      opt_order: 1,
+      has_variant: false,
+      has_benefits: false,
+      has_tnc: false,
+      has_custom_decoys: true,
+      custom_decoys: [{ name: "v1", label: "Pulsa + Decoy (v1)", is_qris: false }],
+    });
+    expect(html).toContain("Pulsa + Decoy V2");
+    expect(html).toContain("QRIS + Decoy (+1K)");
+    expect(html).toContain("decoy_custom_v1");
+    expect(html).toContain('name="qris_amount"');
+  });
+
   it("renders decoy settings with test endpoint", () => {
     const html = renderLayout("decoy_settings", new Request("http://localhost/settings/decoy"), {
       page_title: "Decoy",

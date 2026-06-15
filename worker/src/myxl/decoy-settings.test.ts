@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   DECOY_NAME_RE,
+  formatCustomDecoysForPurchase,
   formatDecoyRow,
   parseDecoyForm,
 } from "./decoy-settings";
@@ -31,6 +32,17 @@ describe("decoy-settings helpers", () => {
     expect(data.price).toBe(5000);
     expect(data.is_enterprise).toBe(true);
     expect(data.base_method).toBe("qris");
+  });
+
+  it("formatCustomDecoysForPurchase builds purchase labels", () => {
+    const rows = formatCustomDecoysForPurchase([
+      { name: "v1", base_method: "balance" },
+      { name: "qtest", base_method: "qris" },
+    ]);
+    expect(rows[0].label).toBe("Pulsa + Decoy (v1)");
+    expect(rows[0].is_qris).toBe(false);
+    expect(rows[1].label).toBe("QRIS + Decoy (qtest)");
+    expect(rows[1].is_qris).toBe(true);
   });
 
   it("formatDecoyRow precomputes template flags", () => {
