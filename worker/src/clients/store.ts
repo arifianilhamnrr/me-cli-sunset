@@ -52,7 +52,25 @@ export function createStoreClient(engsel: EngselClient) {
     return res as Record<string, unknown>;
   }
 
-  return { getSegments, getFamilyList, getStorePackages, getRedeemables };
+  async function getFamiliesByCategory(idToken: string, categoryCode: string, isEnterprise = false) {
+    const res = await engsel.sendApiRequest(
+      "api/v8/xl-stores/families",
+      {
+        migration_type: "",
+        is_enterprise: isEnterprise,
+        is_shareable: false,
+        package_category_code: categoryCode,
+        with_icon_url: true,
+        is_migration: false,
+        lang: "en",
+      },
+      idToken,
+    );
+    if (typeof res === "string" || res.status !== "SUCCESS") return null;
+    return res as Record<string, unknown>;
+  }
+
+  return { getSegments, getFamilyList, getStorePackages, getRedeemables, getFamiliesByCategory };
 }
 
 export type StoreClient = ReturnType<typeof createStoreClient>;

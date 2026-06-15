@@ -1,6 +1,8 @@
 import { Hono } from "hono";
 import { createStoreClient } from "../clients/store";
 import {
+  categoryPageTitle,
+  formatCategoryFamilies,
   formatRedeemables,
   formatStoreFamilies,
   formatStorePackages,
@@ -93,7 +95,7 @@ store.get("/store/redemables", async (c) => {
   const storeClient = createStoreClient(session.clients.engsel);
   try {
     const res = await storeClient.getRedeemables(session.activeUser.tokens.id_token, enterprise);
-    const categories = formatRedeemables(res);
+    const categories = formatRedeemables(res, { enterprise });
 
     let currentPoints = 0;
     let hasPoints = false;
@@ -115,6 +117,57 @@ store.get("/store/redemables", async (c) => {
       has_points: hasPoints,
       current_points: currentPoints,
       current_points_fmt: currentPoints.toLocaleString("id-ID"),
+    });
+  } catch (e) {
+    return renderAppErrorPage(c, { title: "Gagal fetch", message: String(e) }, 500);
+  }
+});
+
+store.get("/store/category", async (c) => {
+  const session = await requireActiveSession(c);
+  if (session instanceof Response) return session;
+
+  const categoryCode = c.req.query("code")?.trim() ?? "";
+  const source = c.req.query("source")?.trim() ?? "";
+  const enterprise = enterpriseFlag(c);
+  if (!categoryCode) {
+    return renderAppErrorPage(c, { title: "Invalid", message: "Parameter code wajib diisi." }, 400);
+  }
+
+  const storeClient = createStoreClient(session.clients.engsel);
+  try {
+    const res = await storeClient.getFamiliesByCategory(
+      session.activeUser.tokens.id_token,
+      categoryCode,
+      enterprise,
+    );
+    const families = formatCategoryFamilies(res, { enterprise });
+
+    let currentPoints = 0;
+    let hasPoints = false;
+    try {
+      const tier = await session.clients.engsel.getTieringInfo(session.activeUser.tokens.id_token);
+      if (tier) {
+        currentPoints = Math.trunc(Number(tier.current_point ?? 0));
+        hasPoints = true;
+      }
+    } catch {
+      /* optional */
+    }
+
+    const title = categoryPageTitle(source);
+    const entQ = enterprise ? "?enterprise=true" : "";
+    return renderActivePage(c, session, "store_category", {
+      page_title: `${title} · WebUI-XL`,
+      category_title: title,
+      category_code: categoryCode,
+      source,
+      families,
+      has_families: families.length > 0,
+      enterprise,
+      has_points: hasPoints,
+      current_points_fmt: currentPoints.toLocaleString("id-ID"),
+      back_href: `/store/redemables${entQ}`,
     });
   } catch (e) {
     return renderAppErrorPage(c, { title: "Gagal fetch", message: String(e) }, 500);

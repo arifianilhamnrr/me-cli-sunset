@@ -30,6 +30,7 @@ import registerTemplate from "./templates/register.html";
 import validateMsisdnTemplate from "./templates/validate_msisdn.html";
 import storeFamiliesTemplate from "./templates/store_families.html";
 import storePackagesTemplate from "./templates/store_packages.html";
+import storeCategoryTemplate from "./templates/store_category.html";
 import storeRedemablesTemplate from "./templates/store_redemables.html";
 import storeSegmentsTemplate from "./templates/store_segments.html";
 import webuiAccountTemplate from "./templates/webui_account.html";
@@ -55,6 +56,7 @@ export const TEMPLATES: Record<string, string> = {
   store_families: storeFamiliesTemplate,
   store_packages: storePackagesTemplate,
   store_redemables: storeRedemablesTemplate,
+  store_category: storeCategoryTemplate,
   purchase_result: purchaseResultTemplate,
   purchase_job_status: purchaseJobStatusTemplate,
   famplan: famplanTemplate,

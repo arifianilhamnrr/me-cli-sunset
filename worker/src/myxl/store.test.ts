@@ -1,11 +1,63 @@
 import { describe, expect, it } from "vitest";
-import { formatStorePackages, storeActionHref } from "./store";
+import {
+  categoryPageTitle,
+  formatCategoryFamilies,
+  formatRedeemables,
+  formatStorePackages,
+  redeemActionLabel,
+  storeActionHref,
+} from "./store";
 
 describe("store helpers", () => {
-  it("storeActionHref maps PDP and PLP", () => {
+  it("storeActionHref maps PDP, PLP, and loyalty landings", () => {
     expect(storeActionHref("PDP", "OPT123")).toBe("/packages/by-option?code=OPT123");
     expect(storeActionHref("PLP", "FAM1")).toBe("/packages/by-family?code=FAM1");
+    expect(storeActionHref("LOYALTY", "cat-1")).toBe("/store/category?code=cat-1&source=LOYALTY");
+    expect(storeActionHref("MYPOINT_LANDING", "cat-2", { enterprise: true })).toBe(
+      "/store/category?code=cat-2&source=MYPOINT_LANDING&enterprise=true",
+    );
     expect(storeActionHref("OTHER", "x")).toBeNull();
+  });
+
+  it("formatRedeemables skips invalid valid_until and hides uuid category codes", () => {
+    const cats = formatRedeemables({
+      data: {
+        categories: [
+          {
+            category_name: "XL Poin",
+            category_code: "19e9c819-48b6-4d3a-8175-e7d6cedc6f3d",
+            redeemables: [
+              {
+                name: "Redeem with XL Poin",
+                valid_until: 0,
+                action_type: "MYPOINT_LANDING",
+                action_param: "19e9c819-48b6-4d3a-8175-e7d6cedc6f3d",
+              },
+            ],
+          },
+        ],
+      },
+    });
+    expect(cats[0].show_code).toBe(false);
+    const item = (cats[0].redeem_items as Record<string, unknown>[])[0];
+    expect(item.has_valid_until).toBe(false);
+    expect(item.has_href).toBe(true);
+    expect(redeemActionLabel("MYPOINT_LANDING")).toBe("XL Poin");
+  });
+
+  it("formatCategoryFamilies extracts family rows", () => {
+    const rows = formatCategoryFamilies({
+      data: {
+        families: [{ package_family_code: "fam-1", name: "Reward A", icon_url: "http://x" }],
+      },
+    });
+    expect(rows).toHaveLength(1);
+    expect(rows[0].href).toContain("fam-1");
+  });
+
+  it("categoryPageTitle maps sources", () => {
+    expect(categoryPageTitle("LOYALTY")).toBe("Katalog myRewards");
+    expect(categoryPageTitle("MYPOINT_LANDING")).toBe("Katalog XL Poin");
   });
 
   it("formatStorePackages extracts price rows", () => {

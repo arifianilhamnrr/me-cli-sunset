@@ -1,7 +1,54 @@
-export function storeActionHref(actionType: string, actionParam: string): string | null {
-  if (actionType === "PDP") return `/packages/by-option?code=${encodeURIComponent(actionParam)}`;
-  if (actionType === "PLP") return `/packages/by-family?code=${encodeURIComponent(actionParam)}`;
+export interface StoreActionOptions {
+  enterprise?: boolean;
+}
+
+const CATEGORY_ACTION_TYPES = new Set(["MYPOINT_LANDING", "LOYALTY"]);
+
+export function redeemActionLabel(actionType: string): string {
+  if (actionType === "MYPOINT_LANDING") return "XL Poin";
+  if (actionType === "LOYALTY") return "myRewards";
+  return actionType;
+}
+
+function enterpriseQuery(enterprise?: boolean): string {
+  return enterprise ? "&enterprise=true" : "";
+}
+
+export function storeActionHref(
+  actionType: string,
+  actionParam: string,
+  opts: StoreActionOptions = {},
+): string | null {
+  const param = actionParam.trim();
+  if (!param) return null;
+  if (actionType === "PDP") {
+    return `/packages/by-option?code=${encodeURIComponent(param)}${enterpriseQuery(opts.enterprise)}`;
+  }
+  if (actionType === "PLP") {
+    return `/packages/by-family?code=${encodeURIComponent(param)}${enterpriseQuery(opts.enterprise)}`;
+  }
+  if (CATEGORY_ACTION_TYPES.has(actionType)) {
+    const q = new URLSearchParams({ code: param, source: actionType });
+    if (opts.enterprise) q.set("enterprise", "true");
+    return `/store/category?${q}`;
+  }
   return null;
+}
+
+function isUuidLike(value: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(value);
+}
+
+function formatValidUntil(raw: unknown): { validUntil: string; hasValidUntil: boolean } {
+  if (raw == null || raw === "") return { validUntil: "", hasValidUntil: false };
+  const ts = Number(raw);
+  if (!Number.isFinite(ts) || ts <= 0) return { validUntil: "", hasValidUntil: false };
+  const ms = ts > 1e12 ? ts : ts * 1000;
+  const d = new Date(ms);
+  if (Number.isNaN(d.getTime()) || d.getFullYear() < 2000) {
+    return { validUntil: "", hasValidUntil: false };
+  }
+  return { validUntil: d.toISOString().slice(0, 10), hasValidUntil: true };
 }
 
 export function formatStoreSegments(res: Record<string, unknown> | null) {
@@ -74,7 +121,7 @@ export function formatStorePackages(res: Record<string, unknown> | null) {
   return packages;
 }
 
-export function formatRedeemables(res: Record<string, unknown> | null) {
+export function formatRedeemables(res: Record<string, unknown> | null, opts: StoreActionOptions = {}) {
   const categories: Array<Record<string, unknown>> = [];
   if (!res) return categories;
   const data = res.data;
@@ -83,37 +130,68 @@ export function formatRedeemables(res: Record<string, unknown> | null) {
     : []) as unknown[];
   for (const c of cats ?? []) {
     const cat = c as Record<string, unknown>;
+    const categoryCode = String(cat.category_code ?? "");
     const items = ((cat.redeemables as unknown[]) ?? []).map((r) => {
       const item = r as Record<string, unknown>;
-      const vu = item.valid_until;
-      let validUntil = "";
-      if (vu != null) {
-        try {
-          validUntil = new Date(Number(vu) * 1000).toISOString().slice(0, 10);
-        } catch {
-          validUntil = String(vu);
-        }
-      }
+      const { validUntil, hasValidUntil } = formatValidUntil(item.valid_until);
       const actionType = String(item.action_type ?? "");
       const actionParam = String(item.action_param ?? "");
-      const href = storeActionHref(actionType, actionParam);
+      const href = storeActionHref(actionType, actionParam, opts);
       return {
         name: item.name ?? "-",
         valid_until: validUntil,
-        has_valid_until: Boolean(validUntil),
+        has_valid_until: hasValidUntil,
         icon: item.icon_url ?? item.image_url,
         has_icon: Boolean(item.icon_url ?? item.image_url),
         action_type: actionType,
+        action_label: redeemActionLabel(actionType),
         href,
         has_href: Boolean(href),
       };
     });
     categories.push({
       name: cat.category_name ?? "-",
-      code: cat.category_code ?? "",
+      code: categoryCode,
+      show_code: Boolean(categoryCode) && !isUuidLike(categoryCode),
       redeem_items: items,
       has_items: items.length > 0,
     });
   }
   return categories;
+}
+
+export function formatCategoryFamilies(
+  res: Record<string, unknown> | null,
+  opts: StoreActionOptions = {},
+): Array<Record<string, unknown>> {
+  if (!res) return [];
+  const payload = (res.data as Record<string, unknown> | undefined) ?? res;
+  const list = (payload.families ??
+    payload.results ??
+    payload.package_families ??
+    []) as unknown[];
+  const entQ = enterpriseQuery(opts.enterprise);
+  const out: Array<Record<string, unknown>> = [];
+  for (const f of list) {
+    const row = f as Record<string, unknown>;
+    const id = String(row.package_family_code ?? row.id ?? row.family_code ?? "").trim();
+    if (!id) continue;
+    const label = String(row.name ?? row.label ?? row.family_name ?? "-");
+    const icon = String(row.icon_url ?? row.icon ?? "");
+    out.push({
+      id,
+      label,
+      icon,
+      has_icon: Boolean(icon),
+      href: `/packages/by-family?code=${encodeURIComponent(id)}${entQ}`,
+      has_href: true,
+    });
+  }
+  return out;
+}
+
+export function categoryPageTitle(source: string): string {
+  if (source === "MYPOINT_LANDING") return "Katalog XL Poin";
+  if (source === "LOYALTY") return "Katalog myRewards";
+  return "Katalog Reward";
 }

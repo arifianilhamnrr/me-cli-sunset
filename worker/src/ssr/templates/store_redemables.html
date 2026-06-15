@@ -5,7 +5,7 @@
   </form>
 </div>
 
-<p class="text-sm text-slate-400 mb-4">Reward, voucher, atau bonus yang bisa lo klaim atau tukar pakai poin MyRewards. Klik item untuk lihat detail &amp; tukar.</p>
+<p class="text-sm text-slate-400 mb-4">Reward, voucher, atau bonus yang bisa lo klaim atau tukar pakai poin MyRewards. Klik item untuk buka katalog paket poin.</p>
 
 {{#has_points}}
 <div class="card mb-4 flex items-center justify-between gap-3">
@@ -20,8 +20,8 @@
 {{^has_categories}}<div class="card text-slate-400 text-sm">Belum ada redemable yang tersedia.</div>{{/has_categories}}
 {{#categories}}
 <section class="mb-6">
-  <h2 class="text-sm uppercase tracking-wider text-slate-400 mb-2">{{name}} <span class="text-[10px] font-mono text-slate-600">{{code}}</span></h2>
-  {{^has_items}}<div class="card text-slate-500 text-sm">Kosong</div>{{/has_items}}
+  <h2 class="text-sm uppercase tracking-wider text-slate-400 mb-2">{{name}}{{#show_code}} <span class="text-[10px] font-mono text-slate-600">{{code}}</span>{{/show_code}}</h2>
+  {{^has_items}}<div class="card text-slate-500 text-sm">Kosong — belum ada promo aktif di kategori ini.</div>{{/has_items}}
   {{#has_items}}
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
   {{#redeem_items}}
@@ -32,8 +32,8 @@
       <div class="min-w-0 flex-1">
         <div class="font-medium group-hover:text-emerald-300 line-clamp-2">{{name}}</div>
         {{#has_valid_until}}<div class="text-xs text-slate-500 mt-1">⏱ s/d {{valid_until}}</div>{{/has_valid_until}}
-        {{#has_href}}<span class="inline-block text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 mt-1">{{action_type}} · Lihat &amp; tukar</span>{{/has_href}}
-        {{^has_href}}{{#action_type}}<span class="inline-block text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 mt-1">{{action_type}} (belum didukung)</span>{{/action_type}}{{/has_href}}
+        {{#has_href}}<span class="inline-block text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-400 mt-1">{{action_label}} · Buka katalog</span>{{/has_href}}
+        {{^has_href}}{{#action_type}}<span class="inline-block text-[10px] px-1.5 py-0.5 rounded bg-amber-500/20 text-amber-400 mt-1">{{action_label}} (belum didukung)</span>{{/action_type}}{{/has_href}}
       </div>
     {{#has_href}}</a>{{/has_href}}{{^has_href}}</div>{{/has_href}}
   {{/redeem_items}}
