@@ -620,6 +620,9 @@ input:checked + .theme-card {
   background: #0f172a;
   box-shadow: 3px 3px 6px #060a12, -3px -3px 6px #182442;
 }
+.neu-header-icon-round {
+  border-radius: 50%;
+}
 
 /* --- Scrollbar --- */
 
