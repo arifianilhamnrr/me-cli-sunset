@@ -4,9 +4,11 @@ import {
   categoryPageTitle,
   formatCategoryFamilies,
   formatRedeemables,
+  formatRedeemablesCategoryCatalog,
   formatStoreFamilies,
   formatStorePackages,
   formatStoreSegments,
+  formatTieringExchangeCatalog,
 } from "../myxl/store";
 import { renderActivePage, requireActiveSession , renderAppErrorPage} from "../myxl/require";
 import type { AppEnv } from "../types";
@@ -135,18 +137,17 @@ store.get("/store/category", async (c) => {
   }
 
   const storeClient = createStoreClient(session.clients.engsel);
+  const debug = c.req.query("debug") === "1";
   try {
-    const res = await storeClient.getFamiliesByCategory(
-      session.activeUser.tokens.id_token,
-      categoryCode,
-      enterprise,
-    );
-    const families = formatCategoryFamilies(res, { enterprise });
+    const idToken = session.activeUser.tokens.id_token;
+    const res = await storeClient.getFamiliesByCategory(idToken, categoryCode, enterprise);
+    const fromFamilies = formatCategoryFamilies(res, { enterprise });
 
+    let tier: Record<string, unknown> | null = null;
     let currentPoints = 0;
     let hasPoints = false;
     try {
-      const tier = await session.clients.engsel.getTieringInfo(session.activeUser.tokens.id_token);
+      tier = await session.clients.engsel.getTieringInfo(idToken);
       if (tier) {
         currentPoints = Math.trunc(Number(tier.current_point ?? 0));
         hasPoints = true;
@@ -155,8 +156,29 @@ store.get("/store/category", async (c) => {
       /* optional */
     }
 
+    let catalogSource = fromFamilies.length > 0 ? "xl-stores/families" : "";
+    let families = fromFamilies;
+
+    if (families.length === 0) {
+      const redeemRes = await storeClient.getRedeemables(idToken, enterprise);
+      const fromRedeemables = formatRedeemablesCategoryCatalog(redeemRes, categoryCode, { enterprise });
+      if (fromRedeemables.length > 0) {
+        families = fromRedeemables;
+        catalogSource = "redeemables";
+      }
+    }
+
+    if (families.length === 0 && (source === "MYPOINT_LANDING" || source === "LOYALTY") && tier) {
+      const fromTiering = formatTieringExchangeCatalog(tier, { enterprise });
+      if (fromTiering.length > 0) {
+        families = fromTiering;
+        catalogSource = "tiering";
+      }
+    }
+
     const title = categoryPageTitle(source);
     const entQ = enterprise ? "?enterprise=true" : "";
+    const apiStatus = res && typeof res === "object" ? String(res.status ?? "unknown") : "no-response";
     return renderActivePage(c, session, "store_category", {
       page_title: `${title} · WebUI-XL`,
       category_title: title,
@@ -168,6 +190,15 @@ store.get("/store/category", async (c) => {
       has_points: hasPoints,
       current_points_fmt: currentPoints.toLocaleString("id-ID"),
       back_href: `/store/redemables${entQ}`,
+      catalog_source: catalogSource,
+      show_debug: debug && families.length === 0,
+      debug_api_status: apiStatus,
+      debug_res_keys:
+        debug && res?.data && typeof res.data === "object" && !Array.isArray(res.data)
+          ? Object.keys(res.data as object).join(", ")
+          : Array.isArray(res?.data)
+            ? `array[${(res.data as unknown[]).length}]`
+            : "",
     });
   } catch (e) {
     return renderAppErrorPage(c, { title: "Gagal fetch", message: String(e) }, 500);

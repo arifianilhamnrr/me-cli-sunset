@@ -194,17 +194,79 @@ function unwrapFamilyRow(raw: unknown): Record<string, unknown> | null {
   return row;
 }
 
-function collectCategoryFamilies(payload: Record<string, unknown>): unknown[] {
-  const direct = [
-    payload.families,
-    payload.results,
-    payload.package_families,
-    payload.items,
+function familyRowId(row: Record<string, unknown>): string {
+  return String(
+    row.package_family_code ?? row.id ?? row.family_code ?? row.code ?? row.package_family_id ?? "",
+  ).trim();
+}
+
+function isFamilyLikeRow(raw: unknown): boolean {
+  const row = unwrapFamilyRow(raw);
+  if (!row) return false;
+  return Boolean(familyRowId(row));
+}
+
+function collectCategoryFamilies(node: unknown, depth = 0): unknown[] {
+  if (depth > 6 || node == null) return [];
+
+  if (Array.isArray(node)) {
+    if (node.length > 0 && isFamilyLikeRow(node[0])) return node;
+    for (const child of node) {
+      const found = collectCategoryFamilies(child, depth + 1);
+      if (found.length > 0) return found;
+    }
+    return [];
+  }
+
+  if (typeof node !== "object") return [];
+
+  const obj = node as Record<string, unknown>;
+  const preferredKeys = [
+    "families",
+    "results",
+    "package_families",
+    "package_family_list",
+    "items",
+    "list",
+    "store_families",
   ];
-  for (const candidate of direct) {
-    if (Array.isArray(candidate) && candidate.length > 0) return candidate;
+  for (const key of preferredKeys) {
+    const candidate = obj[key];
+    if (Array.isArray(candidate) && candidate.length > 0) {
+      const found = collectCategoryFamilies(candidate, depth + 1);
+      if (found.length > 0) return found;
+    }
+  }
+
+  for (const value of Object.values(obj)) {
+    const found = collectCategoryFamilies(value, depth + 1);
+    if (found.length > 0) return found;
   }
   return [];
+}
+
+function formatFamilyCatalogRow(
+  row: Record<string, unknown>,
+  opts: StoreActionOptions,
+  hrefBuilder: (id: string) => string,
+): Record<string, unknown> | null {
+  const id = familyRowId(row);
+  if (!id) return null;
+  const label = String(row.name ?? row.label ?? row.family_name ?? row.title ?? "-");
+  const icon = String(row.icon_url ?? row.icon ?? row.image_url ?? "");
+  const points = row.points ?? row.point ?? row.price ?? row.point_price;
+  const pointsLabel =
+    points != null && Number(points) > 0 ? `${Number(points).toLocaleString("id-ID")} Poin` : "";
+  return {
+    id,
+    label,
+    icon,
+    has_icon: Boolean(icon),
+    href: hrefBuilder(id),
+    has_href: true,
+    points_label: pointsLabel,
+    has_points_label: Boolean(pointsLabel),
+  };
 }
 
 export function formatCategoryFamilies(
@@ -212,28 +274,125 @@ export function formatCategoryFamilies(
   opts: StoreActionOptions = {},
 ): Array<Record<string, unknown>> {
   if (!res) return [];
-  const payload = (res.data as Record<string, unknown> | undefined) ?? res;
+  const payload = res.data ?? res;
   const list = collectCategoryFamilies(payload);
   const entQ = enterpriseQuery(opts.enterprise);
   const out: Array<Record<string, unknown>> = [];
+  const seen = new Set<string>();
   for (const f of list) {
     const row = unwrapFamilyRow(f);
     if (!row) continue;
-    const id = String(
-      row.package_family_code ?? row.id ?? row.family_code ?? row.code ?? "",
+    const formatted = formatFamilyCatalogRow(
+      row,
+      opts,
+      (id) => `/packages/by-family?code=${encodeURIComponent(id)}${entQ}`,
+    );
+    if (!formatted || seen.has(formatted.id as string)) continue;
+    seen.add(formatted.id as string);
+    out.push(formatted);
+  }
+  return out;
+}
+
+export function formatRedeemablesCategoryCatalog(
+  res: Record<string, unknown> | null,
+  categoryCode: string,
+  opts: StoreActionOptions = {},
+): Array<Record<string, unknown>> {
+  if (!res) return [];
+  const data = res.data;
+  const cats = (typeof data === "object" && data && "categories" in (data as object)
+    ? (data as Record<string, unknown>).categories
+    : []) as unknown[];
+  const cat = cats.find((c) => String((c as Record<string, unknown>).category_code ?? "") === categoryCode);
+  if (!cat) return [];
+
+  const out: Array<Record<string, unknown>> = [];
+  const seen = new Set<string>();
+  for (const r of ((cat as Record<string, unknown>).redeemables as unknown[]) ?? []) {
+    const item = r as Record<string, unknown>;
+    const actionType = String(item.action_type ?? "");
+    if (CATEGORY_ACTION_TYPES.has(actionType)) continue;
+    const actionParam = resolveRedeemActionParam(item, categoryCode, actionType);
+    const href = storeActionHref(actionType, actionParam, opts);
+    if (!href || seen.has(href)) continue;
+    seen.add(href);
+    const icon = String(item.icon_url ?? item.image_url ?? "");
+    out.push({
+      id: actionParam,
+      label: item.name ?? "-",
+      icon,
+      has_icon: Boolean(icon),
+      href,
+      has_href: true,
+      points_label: "",
+      has_points_label: false,
+    });
+  }
+  return out;
+}
+
+export function formatTieringExchangeCatalog(
+  tier: Record<string, unknown> | null,
+  opts: StoreActionOptions = {},
+): Array<Record<string, unknown>> {
+  if (!tier) return [];
+  const entQ = enterpriseQuery(opts.enterprise);
+  const out: Array<Record<string, unknown>> = [];
+  const seen = new Set<string>();
+
+  function consider(row: Record<string, unknown>) {
+    const optionCode = String(
+      row.package_option_code ?? row.option_code ?? row.item_code ?? row.code ?? "",
     ).trim();
-    if (!id) continue;
-    const label = String(row.name ?? row.label ?? row.family_name ?? row.title ?? "-");
+    const familyCode = String(row.package_family_code ?? row.family_code ?? "").trim();
+    const name = row.item_name ?? row.name ?? row.title ?? row.label;
+    const points = row.points ?? row.point ?? row.point_price ?? row.price ?? row.amount;
+    if (!name) return;
+
+    let href: string | null = null;
+    let id = "";
+    if (optionCode) {
+      id = optionCode;
+      href = `/packages/by-option?code=${encodeURIComponent(optionCode)}${entQ}`;
+    } else if (familyCode) {
+      id = familyCode;
+      href = `/packages/by-family?code=${encodeURIComponent(familyCode)}${entQ}`;
+    }
+    if (!href || seen.has(href)) return;
+    seen.add(href);
+
+    const pointsLabel =
+      points != null && Number(points) > 0 ? `${Number(points).toLocaleString("id-ID")} Poin` : "";
     const icon = String(row.icon_url ?? row.icon ?? row.image_url ?? "");
     out.push({
       id,
-      label,
+      label: String(name),
       icon,
       has_icon: Boolean(icon),
-      href: `/packages/by-family?code=${encodeURIComponent(id)}${entQ}`,
+      href,
       has_href: true,
+      points_label: pointsLabel,
+      has_points_label: Boolean(pointsLabel),
     });
   }
+
+  function walk(node: unknown, depth = 0) {
+    if (depth > 8 || node == null) return;
+    if (Array.isArray(node)) {
+      for (const el of node) walk(el, depth + 1);
+      return;
+    }
+    if (typeof node !== "object") return;
+    const row = node as Record<string, unknown>;
+    const hasCatalogFields =
+      (row.item_code ?? row.package_option_code ?? row.option_code ?? row.package_family_code) &&
+      (row.item_name ?? row.name ?? row.title ?? row.label);
+    if (hasCatalogFields) consider(row);
+    for (const value of Object.values(row)) walk(value, depth + 1);
+  }
+
+  walk(tier);
   return out;
 }
 

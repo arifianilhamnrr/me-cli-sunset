@@ -20,7 +20,12 @@
 <p class="text-sm text-slate-400 mb-4">Pilih family paket reward di bawah. Harga ditampilkan dalam <b>Poin</b> di halaman detail.</p>
 
 {{^has_families}}
-<div class="card text-slate-400 text-sm">Belum ada paket di kategori ini untuk akun lo (atau kategori memang kosong di server MyXL).</div>
+<div class="card text-slate-400 text-sm space-y-2">
+  <p>Belum ada paket di kategori ini untuk akun lo. Coba refresh atau cek lagi nanti — katalog XL Poin kadang kosong di API MyXL.</p>
+  {{#show_debug}}
+  <p class="text-[10px] font-mono text-slate-600">debug: families API status={{debug_api_status}}{{#debug_res_keys}} · data keys={{debug_res_keys}}{{/debug_res_keys}}</p>
+  {{/show_debug}}
+</div>
 {{/has_families}}
 
 <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -30,6 +35,7 @@
   {{^has_icon}}<div class="w-10 h-10 rounded bg-amber-500/10 flex items-center justify-center shrink-0 text-lg">🎁</div>{{/has_icon}}
   <div class="min-w-0">
     <div class="font-medium group-hover:text-amber-300 truncate">{{label}}</div>
+    {{#has_points_label}}<div class="text-xs text-amber-400">{{points_label}}</div>{{/has_points_label}}
     <div class="text-xs text-slate-500 font-mono truncate">{{id}}</div>
   </div>
 </a>

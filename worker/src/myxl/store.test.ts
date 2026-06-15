@@ -3,7 +3,9 @@ import {
   categoryPageTitle,
   formatCategoryFamilies,
   formatRedeemables,
+  formatRedeemablesCategoryCatalog,
   formatStorePackages,
+  formatTieringExchangeCatalog,
   redeemActionLabel,
   resolveRedeemActionParam,
   storeActionHref,
@@ -113,6 +115,45 @@ describe("store helpers", () => {
     expect(rows).toHaveLength(1);
     expect(rows[0].id).toBe("fam-nested");
     expect(rows[0].label).toBe("Nested Reward");
+  });
+
+  it("formatCategoryFamilies accepts data array responses", () => {
+    const rows = formatCategoryFamilies({
+      data: [{ package_family_code: "fam-array", name: "Array Reward" }],
+    });
+    expect(rows).toHaveLength(1);
+    expect(rows[0].id).toBe("fam-array");
+  });
+
+  it("formatRedeemablesCategoryCatalog maps PDP items in category", () => {
+    const rows = formatRedeemablesCategoryCatalog(
+      {
+        data: {
+          categories: [
+            {
+              category_code: "cat-1",
+              redeemables: [
+                { name: "Landing", action_type: "MYPOINT_LANDING", action_param: "" },
+                { name: "Paket 1GB", action_type: "PDP", action_param: "OPT1" },
+              ],
+            },
+          ],
+        },
+      },
+      "cat-1",
+    );
+    expect(rows).toHaveLength(1);
+    expect(rows[0].href).toContain("OPT1");
+  });
+
+  it("formatTieringExchangeCatalog extracts nested exchange rows", () => {
+    const rows = formatTieringExchangeCatalog({
+      current_point: 11070,
+      rewards: [{ item_code: "RWD1", item_name: "Kuota 1GB", points: 500 }],
+    });
+    expect(rows).toHaveLength(1);
+    expect(rows[0].has_points_label).toBe(true);
+    expect(rows[0].href).toContain("RWD1");
   });
 
   it("categoryPageTitle maps sources", () => {
