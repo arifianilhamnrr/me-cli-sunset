@@ -62,9 +62,9 @@
   },
   "scripts": {
     "dev": "wrangler dev",
-    "deploy": "npm run db:migrations:apply && wrangler deploy",
-    "deploy:staging": "npm run db:migrations:apply:staging && wrangler deploy --env staging",
-    "deploy:production": "npm run db:migrations:apply:production && wrangler deploy --env production",
+    "deploy": "bash scripts/with-cf-env.sh npm run db:migrations:apply && bash scripts/with-cf-env.sh wrangler deploy",
+    "deploy:staging": "bash scripts/with-cf-env.sh npm run db:migrations:apply:staging && bash scripts/with-cf-env.sh wrangler deploy --env staging",
+    "deploy:production": "bash scripts/with-cf-env.sh npm run db:migrations:apply:production && bash scripts/with-cf-env.sh wrangler deploy --env production",
     "db:migrations:apply": "wrangler d1 migrations apply DB --remote",
     "db:migrations:apply:staging": "wrangler d1 migrations apply DB --remote --env staging",
     "db:migrations:apply:production": "wrangler d1 migrations apply DB --remote --env production",
