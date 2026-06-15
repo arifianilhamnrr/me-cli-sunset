@@ -4,6 +4,7 @@ import {
   javaLikeTimestamp,
   refreshAxRequestAtGmt7,
   tsGmt7WithoutColon,
+  wibTodayAtUnix,
 } from "./time";
 
 /** Instant: 2026-06-13 03:30:45.123 UTC = 10:30:45.123 WIB */
@@ -31,5 +32,16 @@ describe("client time helpers", () => {
 
   it("refreshAxRequestAtGmt7 uses millisecond fraction", () => {
     expect(refreshAxRequestAtGmt7(INSTANT)).toBe("2026-06-13T10:30:45.123+0700");
+  });
+
+  it("wibTodayAtUnix maps 07:00 WIB to midnight UTC on the same WIB calendar day", () => {
+    const now = new Date("2026-06-15T06:00:00Z"); // 13:00 WIB
+    expect(wibTodayAtUnix(7, 0, now)).toBe(Math.floor(new Date("2026-06-15T00:00:00Z").getTime() / 1000));
+  });
+
+  it("wibTodayAtUnix keeps 07:00 WIB before the slot on the prior UTC day", () => {
+    const now = new Date("2026-06-14T23:30:00Z"); // 06:30 WIB on 15 Jun
+    expect(wibTodayAtUnix(7, 0, now)).toBe(Math.floor(new Date("2026-06-15T00:00:00Z").getTime() / 1000));
+    expect(Math.floor(now.getTime() / 1000)).toBeLessThan(wibTodayAtUnix(7, 0, now));
   });
 });

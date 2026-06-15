@@ -96,4 +96,24 @@ export function nowGmt7(): Date {
   return new Date();
 }
 
+/**
+ * Unix timestamp for today's calendar date in WIB at the given wall-clock time.
+ * Use this for user-facing schedules — Cloudflare Workers always run in UTC.
+ */
+export function wibTodayAtUnix(hour: number, minute: number, now = new Date()): number {
+  const shifted = new Date(now.getTime() + GMT7_OFFSET_MIN * 60_000);
+  const targetMs =
+    Date.UTC(
+      shifted.getUTCFullYear(),
+      shifted.getUTCMonth(),
+      shifted.getUTCDate(),
+      hour,
+      minute,
+      0,
+      0,
+    ) -
+    GMT7_OFFSET_MIN * 60_000;
+  return Math.floor(targetMs / 1000);
+}
+
 export { GMT7_OFFSET_MIN };

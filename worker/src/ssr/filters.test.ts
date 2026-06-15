@@ -7,8 +7,9 @@ describe("SSR filters", () => {
     expect(formatRp("x")).toBe("x");
   });
 
-  it("formatTs", () => {
-    expect(formatTs(1710000000)).toMatch(/^2024-/);
+  it("formatTs uses WIB", () => {
+    // 1710000000 = 2024-03-09 16:00:00 UTC = 2024-03-09 23:00:00 WIB
+    expect(formatTs(1710000000)).toBe("2024-03-09 23:00");
   });
 
   it("formatDate", () => {

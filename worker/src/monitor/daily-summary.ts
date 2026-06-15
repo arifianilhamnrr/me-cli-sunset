@@ -1,4 +1,5 @@
 import type { Env } from "../env";
+import { wibTodayAtUnix } from "../clients/time";
 import { getUser } from "../auth/users";
 import { GLOBAL_MONITOR_DAILY_SUMMARY } from "../storage/keys";
 import type { StorageBackend } from "../storage/types";
@@ -27,9 +28,7 @@ async function saveSummaryState(storage: StorageBackend, state: SummaryState): P
 }
 
 function todayTargetTs(cfg: TelegramConfig, now = new Date()): number {
-  const target = new Date(now);
-  target.setHours(cfg.daily_summary_hour, cfg.daily_summary_minute, 0, 0);
-  return Math.floor(target.getTime() / 1000);
+  return wibTodayAtUnix(cfg.daily_summary_hour, cfg.daily_summary_minute, now);
 }
 
 export async function maybeSendDailySummary(
